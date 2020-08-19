@@ -10,6 +10,7 @@ management:
       enabled: true
     health:
       enabled: true
+      show-details: always
   endpoints:
     web:
       exposure:
@@ -27,6 +28,8 @@ spring:
         uri: lb://wfs-service #load balanced to the wfs-service instances
         predicates:
         - Path=/wfs,/{segment}/wfs,/schemas/wfs/**
+        filters:
+        - CircuitBreaker=myCircuitBreaker
 # proxy [/{workspace}]/ows?SERVICE=wfs to wfs-service:[/{workspace}]/ows?SERVICE=wfs. Param value is case insensitive, name is not.
       - id: wfs_ows
         uri: lb://wfs-service
