@@ -8,9 +8,9 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import org.geoserver.catalog.CatalogInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository;
 import org.geoserver.catalog.plugin.Patch;
 import org.geoserver.catalog.plugin.Query;
+import org.geoserver.catalog.plugin.repository.CatalogInfoRepository;
 import org.opengis.filter.Filter;
 
 public abstract class ForwardingCatalogRepository<

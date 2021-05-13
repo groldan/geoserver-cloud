@@ -10,7 +10,7 @@ import lombok.NonNull;
 import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StoreRepository;
+import org.geoserver.catalog.plugin.repository.StoreRepository;
 
 public class ForwardingStoreRepository
         extends ForwardingCatalogRepository<StoreInfo, StoreRepository> implements StoreRepository {

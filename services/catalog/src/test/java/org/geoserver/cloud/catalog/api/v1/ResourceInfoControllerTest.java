@@ -115,7 +115,10 @@ public class ResourceInfoControllerTest
     public @Test void testResourceInfoCRUD_CoverageInfo() {
         CoverageInfo toCreate =
                 testData.createCoverage(
-                        "coverageCRUD", testData.coverageStoreA, "coverageCRUD_name");
+                        "coverageCRUD",
+                        "coverageCRUD_name",
+                        testData.namespaceA,
+                        testData.coverageStoreA);
         crudTest(
                 toCreate,
                 catalog::getCoverage,

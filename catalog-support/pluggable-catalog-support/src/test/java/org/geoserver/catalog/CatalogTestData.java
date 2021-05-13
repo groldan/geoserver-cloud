@@ -14,11 +14,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.NonNull;
 import org.geoserver.catalog.impl.AuthorityURL;
+import org.geoserver.catalog.impl.CoverageInfoImpl;
 import org.geoserver.catalog.impl.DataStoreInfoImpl;
 import org.geoserver.catalog.impl.LayerGroupInfoImpl;
 import org.geoserver.catalog.impl.MetadataLinkInfoImpl;
@@ -281,7 +283,7 @@ public class CatalogTestData extends ExternalResource {
 
         coverageStoreA =
                 createCoverageStore("cs1", workspaceA, "csName", "fakeCoverageType", "file://fake");
-        coverageA = createCoverage("cov1", coverageStoreA, "cvName");
+        coverageA = createCoverage("cov1", "cvName", namespaceA, coverageStoreA);
 
         wmsStoreA = createWebMapServer("wms1", workspaceA, "wmsName", "http://fake.url", true);
 
@@ -364,6 +366,12 @@ public class CatalogTestData extends ExternalResource {
         return this;
     }
 
+    public LayerGroupInfo createLayerGroup(String name) {
+        String id = String.format("LayerGroupInfo-%s-%s", name, UUID.randomUUID().toString());
+        WorkspaceInfo workspace = null;
+        return createLayerGroup(id, workspace, name, layerFeatureTypeA, style1);
+    }
+
     public LayerGroupInfo createLayerGroup(
             String id, WorkspaceInfo workspace, String name, PublishedInfo layer, StyleInfo style) {
         // not using factory cause SecuredCatalog would return SecuredLayerGroupInfo which has no id
@@ -378,14 +386,17 @@ public class CatalogTestData extends ExternalResource {
         return lg;
     }
 
-    public LayerInfo createLayer(ResourceInfo resource, StyleInfo defaultStyle) {
+    public LayerInfo createLayer(ResourceInfo resource) {
+        StyleInfo defaultStyle = null;
+        String id =
+                String.format("LayerInfo-%s-%s", resource.getName(), UUID.randomUUID().toString());
+        return createLayer(id, resource, resource.getName() + " title", true, defaultStyle);
+    }
 
-        return createLayer(
-                resource.getName() + "-layer-id",
-                resource,
-                resource.getName() + " title",
-                true,
-                defaultStyle);
+    public LayerInfo createLayer(ResourceInfo resource, StyleInfo defaultStyle) {
+        String id =
+                String.format("LayerInfo-%s-%s", resource.getName(), UUID.randomUUID().toString());
+        return createLayer(id, resource, resource.getName() + " title", true, defaultStyle);
     }
 
     public LayerInfo createLayer(
@@ -413,7 +424,8 @@ public class CatalogTestData extends ExternalResource {
     }
 
     public StyleInfo createStyle(@NonNull String name, WorkspaceInfo workspace) {
-        return createStyle(name + "-id", workspace, name, name + ".sld");
+        String id = String.format("StyleInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createStyle(id, workspace, name, name + ".sld");
     }
 
     public StyleInfo createStyle(String id, WorkspaceInfo workspace, String name, String fileName) {
@@ -426,8 +438,13 @@ public class CatalogTestData extends ExternalResource {
         return st;
     }
 
+    public WMTSLayerInfo createWMTSLayer(String name) {
+        String id = String.format("WMTSLayerInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createWMTSLayer(id, wmtsStoreA, namespaceA, name, true);
+    }
+
     public WMTSLayerInfo createWMTSLayer(
-            String id, StoreInfo store, NamespaceInfo namespace, String name, boolean enabled) {
+            String id, WMTSStoreInfo store, NamespaceInfo namespace, String name, boolean enabled) {
         WMTSLayerInfo wmtsl = getFactory().createWMTSLayer();
         OwsUtils.set(wmtsl, "id", id);
         wmtsl.setStore(store);
@@ -436,6 +453,12 @@ public class CatalogTestData extends ExternalResource {
         wmtsl.setEnabled(enabled);
         OwsUtils.resolveCollections(wmtsl);
         return wmtsl;
+    }
+
+    public WMTSStoreInfo createWebMapTileServer(String name) {
+        String id = String.format("WMTSStoreInfo-%s-%s", name, UUID.randomUUID().toString());
+        String url = "http://test.com/" + name;
+        return createWebMapTileServer(id, workspaceA, name, url, true);
     }
 
     public WMTSStoreInfo createWebMapTileServer(
@@ -451,8 +474,13 @@ public class CatalogTestData extends ExternalResource {
         return wmtss;
     }
 
+    public WMSLayerInfo createWMSLayer(String name) {
+        String id = String.format("WMSLayerInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createWMSLayer(id, wmsStoreA, namespaceA, name, true);
+    }
+
     public WMSLayerInfo createWMSLayer(
-            String id, StoreInfo store, NamespaceInfo namespace, String name, boolean enabled) {
+            String id, WMSStoreInfo store, NamespaceInfo namespace, String name, boolean enabled) {
         WMSLayerInfo wmsl = getFactory().createWMSLayer();
         OwsUtils.set(wmsl, "id", id);
         wmsl.setStore(store);
@@ -461,6 +489,12 @@ public class CatalogTestData extends ExternalResource {
         wmsl.setEnabled(enabled);
         OwsUtils.resolveCollections(wmsl);
         return wmsl;
+    }
+
+    public WMSStoreInfo createWebMapServer(String name) {
+        String id = String.format("WMSStoreInfo-%s-%s", name, UUID.randomUUID().toString());
+        String url = "http://test.com/" + name;
+        return createWebMapServer(id, workspaceA, name, url, true);
     }
 
     public WMSStoreInfo createWebMapServer(
@@ -477,16 +511,34 @@ public class CatalogTestData extends ExternalResource {
     }
 
     public CoverageInfo createCoverage(String name) {
-        return createCoverage(name + "-id", coverageStoreA, name);
+        return createCoverage(name, coverageStoreA, namespaceA);
     }
 
-    public CoverageInfo createCoverage(String id, CoverageStoreInfo cstore, String name) {
+    public CoverageInfo createCoverage(
+            String name, CoverageStoreInfo store, NamespaceInfo namespace) {
+        String id = String.format("CoverageInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createCoverage(id, name, namespace, store);
+    }
+
+    public CoverageInfo createCoverage(
+            String id, String name, NamespaceInfo namespace, CoverageStoreInfo cstore) {
         CoverageInfo coverage = getFactory().createCoverage();
         OwsUtils.set(coverage, "id", id);
         coverage.setName(name);
         coverage.setStore(cstore);
+        ((CoverageInfoImpl) coverage).setNamespace(namespace);
         OwsUtils.resolveCollections(coverage);
         return coverage;
+    }
+
+    public CoverageStoreInfo createCoverageStore(String name) {
+        return createCoverageStore(name, workspaceA);
+    }
+
+    public CoverageStoreInfo createCoverageStore(String name, WorkspaceInfo workspace) {
+        String id = String.format("CoverageStoreInfo-%s-%s", name, UUID.randomUUID().toString());
+        String uri = "file:/test/" + name + ".tiff";
+        return createCoverageStore(id, workspace, name, "GeoTIFF", uri);
     }
 
     public CoverageStoreInfo createCoverageStore(
@@ -502,14 +554,12 @@ public class CatalogTestData extends ExternalResource {
     }
 
     public FeatureTypeInfo createFeatureType(String name) {
-        return createFeatureType(
-                name + "-id",
-                dataStoreA,
-                namespaceA,
-                name,
-                name + " abstract",
-                name + " description",
-                true);
+        return createFeatureType(name, dataStoreA, namespaceA);
+    }
+
+    public FeatureTypeInfo createFeatureType(String name, DataStoreInfo ds, NamespaceInfo ns) {
+        String id = String.format("FeatureTypeInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createFeatureType(id, ds, ns, name, name + " abstract", name + " description", true);
     }
 
     public FeatureTypeInfo createFeatureType(
@@ -573,8 +623,13 @@ public class CatalogTestData extends ExternalResource {
         }
     }
 
+    public DataStoreInfo createDataStore(String name) {
+        return createDataStore(name, workspaceA);
+    }
+
     public DataStoreInfo createDataStore(String name, WorkspaceInfo ws) {
-        return createDataStore(name + "-id", ws, name, name + " description", true);
+        String id = String.format("DataStoreInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createDataStore(id, ws, name, name + " description", true);
     }
 
     public DataStoreInfo createDataStore(
@@ -595,7 +650,8 @@ public class CatalogTestData extends ExternalResource {
     }
 
     public WorkspaceInfo createWorkspace(String name) {
-        return createWorkspace(name + "-id", name);
+        String id = String.format("WorkspaceInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createWorkspace(id, name);
     }
 
     public WorkspaceInfo createWorkspace(String id, String name) {
@@ -607,7 +663,8 @@ public class CatalogTestData extends ExternalResource {
     }
 
     public NamespaceInfo createNamespace(String name, String uri) {
-        return createNamespace(name + "-id", name, uri);
+        String id = String.format("NamespaceInfo-%s-%s", name, UUID.randomUUID().toString());
+        return createNamespace(id, name, uri);
     }
 
     public NamespaceInfo createNamespace(String id, String name, String uri) {
@@ -727,7 +784,8 @@ public class CatalogTestData extends ExternalResource {
 
     public <S extends ServiceInfoImpl> S createService(String name, Supplier<S> factory) {
         S s = factory.get();
-        s.setId(name + "-id");
+        String id = String.format("ServiceInfo-%s-%s", name, UUID.randomUUID().toString());
+        s.setId(id);
         s.setName(name);
         s.setTitle(name + " Title");
         s.setAbstract(name + " Abstract");

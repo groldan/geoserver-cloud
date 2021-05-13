@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StyleRepository;
+import org.geoserver.catalog.plugin.repository.StyleRepository;
 
 public class ForwardingStyleRepository
         extends ForwardingCatalogRepository<StyleInfo, StyleRepository> implements StyleRepository {

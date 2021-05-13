@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.NonNull;
 import org.geoserver.catalog.NamespaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.NamespaceRepository;
+import org.geoserver.catalog.plugin.repository.NamespaceRepository;
 import org.springframework.lang.Nullable;
 
 public class CatalogClientNamespaceRepository extends CatalogClientRepository<NamespaceInfo>

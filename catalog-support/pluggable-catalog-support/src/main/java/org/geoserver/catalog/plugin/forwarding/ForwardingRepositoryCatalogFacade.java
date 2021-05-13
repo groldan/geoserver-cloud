@@ -6,16 +6,16 @@ package org.geoserver.catalog.plugin.forwarding;
 
 import org.geoserver.catalog.CatalogFacade;
 import org.geoserver.catalog.CatalogInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerGroupRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.MapRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.NamespaceRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.ResourceRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StoreRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StyleRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.WorkspaceRepository;
-import org.geoserver.catalog.plugin.RepositoryCatalogFacade;
+import org.geoserver.catalog.plugin.repository.CatalogInfoRepository;
+import org.geoserver.catalog.plugin.repository.LayerGroupRepository;
+import org.geoserver.catalog.plugin.repository.LayerRepository;
+import org.geoserver.catalog.plugin.repository.MapRepository;
+import org.geoserver.catalog.plugin.repository.NamespaceRepository;
+import org.geoserver.catalog.plugin.repository.RepositoryCatalogFacade;
+import org.geoserver.catalog.plugin.repository.ResourceRepository;
+import org.geoserver.catalog.plugin.repository.StoreRepository;
+import org.geoserver.catalog.plugin.repository.StyleRepository;
+import org.geoserver.catalog.plugin.repository.WorkspaceRepository;
 
 /**
  * {@link CatalogFacade} which forwards all its method calls to another {@code CatalogFacade} aiding

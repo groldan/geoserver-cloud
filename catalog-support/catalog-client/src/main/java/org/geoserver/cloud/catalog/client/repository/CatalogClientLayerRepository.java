@@ -11,7 +11,7 @@ import lombok.NonNull;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StyleInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
+import org.geoserver.catalog.plugin.repository.LayerRepository;
 
 public class CatalogClientLayerRepository extends CatalogClientRepository<LayerInfo>
         implements LayerRepository {

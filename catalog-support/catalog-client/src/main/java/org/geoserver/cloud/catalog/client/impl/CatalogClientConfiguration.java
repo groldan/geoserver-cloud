@@ -4,8 +4,8 @@
  */
 package org.geoserver.cloud.catalog.client.impl;
 
-import org.geoserver.catalog.plugin.RepositoryCatalogFacade;
-import org.geoserver.catalog.plugin.RepositoryCatalogFacadeImpl;
+import org.geoserver.catalog.plugin.repository.RepositoryCatalogFacade;
+import org.geoserver.catalog.plugin.repository.RepositoryCatalogFacadeImpl;
 import org.geoserver.cloud.catalog.client.reactivefeign.BlockingResourceStoreClient;
 import org.geoserver.cloud.catalog.client.reactivefeign.ReactiveConfigClient;
 import org.geoserver.cloud.catalog.client.reactivefeign.ReactiveResourceStoreClient;

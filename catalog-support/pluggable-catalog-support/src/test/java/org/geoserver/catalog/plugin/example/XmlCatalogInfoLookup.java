@@ -2,7 +2,7 @@
  * (c) 2017 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.catalog.plugin;
+package org.geoserver.catalog.plugin.example;
 
 import com.google.common.collect.Ordering;
 import java.io.ByteArrayInputStream;
@@ -31,6 +31,18 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.impl.ClassMappings;
+import org.geoserver.catalog.plugin.Patch;
+import org.geoserver.catalog.plugin.Query;
+import org.geoserver.catalog.plugin.heap.CatalogInfoLookup;
+import org.geoserver.catalog.plugin.repository.CatalogInfoRepository;
+import org.geoserver.catalog.plugin.repository.LayerGroupRepository;
+import org.geoserver.catalog.plugin.repository.LayerRepository;
+import org.geoserver.catalog.plugin.repository.MapRepository;
+import org.geoserver.catalog.plugin.repository.NamespaceRepository;
+import org.geoserver.catalog.plugin.repository.ResourceRepository;
+import org.geoserver.catalog.plugin.repository.StoreRepository;
+import org.geoserver.catalog.plugin.repository.StyleRepository;
+import org.geoserver.catalog.plugin.repository.WorkspaceRepository;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.ows.util.OwsUtils;
 import org.geotools.util.logging.Logging;
@@ -229,7 +241,7 @@ abstract class XmlCatalogInfoLookup<T extends CatalogInfo> implements CatalogInf
             Class<U> clazz, Predicate<U> predicate, Comparator<U> comparator) {
 
         Stream<U> stream = all().filter(clazz::isInstance).map(clazz::cast).filter(predicate);
-        if (comparator != CatalogInfoLookup.PROVIDED_ORDER) {
+        if (!Query.providedOrder().equals(comparator)) {
             stream = stream.sorted(comparator);
         }
         return stream;

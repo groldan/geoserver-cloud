@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import javax.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.catalog.plugin.DefaultMemoryCatalogFacade;
+import org.geoserver.catalog.plugin.heap.DefaultMemoryCatalogFacade;
 import org.geoserver.cloud.autoconfigure.bus.ConditionalOnGeoServerRemoteEventsEnabled;
 import org.geoserver.cloud.config.catalog.GeoServerBackendConfigurer;
 import org.geoserver.cloud.config.catalog.GeoServerBackendProperties;
@@ -46,7 +46,7 @@ public class DataDirectoryBackendConfigurer implements GeoServerBackendConfigure
     }
 
     public @Override @Bean DefaultMemoryCatalogFacade catalogFacade() {
-        return new org.geoserver.catalog.plugin.DefaultMemoryCatalogFacade();
+        return new org.geoserver.catalog.plugin.heap.DefaultMemoryCatalogFacade();
     }
 
     public @Override @Bean RepositoryGeoServerFacade geoserverFacade() {

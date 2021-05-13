@@ -2,7 +2,7 @@
  * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.catalog.plugin;
+package org.geoserver.catalog.plugin.repository;
 
 import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.LayerGroupInfo;
@@ -13,14 +13,7 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerGroupRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.MapRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.NamespaceRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.ResourceRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StoreRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StyleRepository;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.WorkspaceRepository;
+import org.geoserver.catalog.plugin.CatalogInfoTypeRegistry;
 
 public class CatalogInfoRepositoryHolderImpl implements CatalogInfoRepositoryHolder {
 

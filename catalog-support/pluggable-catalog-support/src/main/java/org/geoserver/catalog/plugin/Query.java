@@ -4,9 +4,11 @@
  */
 package org.geoserver.catalog.plugin;
 
+import com.google.common.collect.Ordering;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
@@ -17,14 +19,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.Info;
+import org.geoserver.ows.util.OwsUtils;
 import org.opengis.filter.Filter;
 import org.opengis.filter.sort.SortBy;
+import org.opengis.filter.sort.SortOrder;
 
 /** */
 @NoArgsConstructor
 @RequiredArgsConstructor
 @Accessors(chain = true)
 public @Data class Query<T extends Info> {
+
+    /** constant no-op Comparator for {@link #providedOrder()} */
+    private static final Ordering<?> PROVIDED_ORDER = Ordering.allEqual();
 
     private @NonNull Class<T> type;
     private @NonNull Filter filter = Filter.INCLUDE;
@@ -100,5 +107,60 @@ public @Data class Query<T extends Info> {
      */
     public Query<T> withFilter(Filter filter) {
         return filter.equals(this.filter) ? this : new Query<>(this).setFilter(filter);
+    }
+
+    public <U extends CatalogInfo> Comparator<U> toComparator() {
+        Comparator<U> comparator = providedOrder();
+        for (SortBy sortBy : this.getSortBy()) {
+            comparator =
+                    (comparator == PROVIDED_ORDER)
+                            ? comparator(sortBy)
+                            : comparator.thenComparing(comparator(sortBy));
+        }
+        return comparator;
+    }
+
+    public static <U extends CatalogInfo> Comparator<U> toComparator(Query<U> query) {
+        Comparator<U> comparator = providedOrder();
+        for (SortBy sortBy : query.getSortBy()) {
+            comparator =
+                    (comparator == PROVIDED_ORDER)
+                            ? comparator(sortBy)
+                            : comparator.thenComparing(comparator(sortBy));
+        }
+        return comparator;
+    }
+
+    public static <U extends CatalogInfo> Comparator<U> comparator(final SortBy sortOrder) {
+        Comparator<U> comparator =
+                new Comparator<>() {
+                    public @Override int compare(U o1, U o2) {
+                        Object v1 = OwsUtils.get(o1, sortOrder.getPropertyName().getPropertyName());
+                        Object v2 = OwsUtils.get(o2, sortOrder.getPropertyName().getPropertyName());
+                        if (v1 == null) {
+                            if (v2 == null) {
+                                return 0;
+                            } else {
+                                return -1;
+                            }
+                        } else if (v2 == null) {
+                            return 1;
+                        }
+                        @SuppressWarnings({"rawtypes", "unchecked"})
+                        Comparable<Object> c1 = (Comparable) v1;
+                        @SuppressWarnings({"rawtypes", "unchecked"})
+                        Comparable<Object> c2 = (Comparable) v2;
+                        return c1.compareTo(c2);
+                    }
+                };
+        if (SortOrder.DESCENDING.equals(sortOrder.getSortOrder())) {
+            comparator = comparator.reversed();
+        }
+        return comparator;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <U extends CatalogInfo> Comparator<U> providedOrder() {
+        return (Comparator<U>) PROVIDED_ORDER;
     }
 }

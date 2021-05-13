@@ -12,7 +12,7 @@ import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.impl.ClassMappings;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StoreRepository;
+import org.geoserver.catalog.plugin.repository.StoreRepository;
 import org.springframework.lang.Nullable;
 import reactor.core.publisher.Flux;
 

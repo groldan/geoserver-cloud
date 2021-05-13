@@ -14,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.WorkspaceRepository;
+import org.geoserver.catalog.plugin.repository.WorkspaceRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

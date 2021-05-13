@@ -45,7 +45,7 @@ public class GeoServerMainAutoConfigurationTest {
         CatalogFacade rawCatalogFacade = context.getBean(CatalogFacade.class);
         assertThat(
                 rawCatalogFacade,
-                instanceOf(org.geoserver.catalog.plugin.DefaultMemoryCatalogFacade.class));
+                instanceOf(org.geoserver.catalog.plugin.heap.DefaultMemoryCatalogFacade.class));
     }
 
     public @Test void catalog() {

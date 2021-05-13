@@ -29,7 +29,7 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WMSStoreInfo;
 import org.geoserver.catalog.WMTSStoreInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StoreRepository;
+import org.geoserver.catalog.plugin.repository.StoreRepository;
 import org.junit.Test;
 import org.opengis.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;

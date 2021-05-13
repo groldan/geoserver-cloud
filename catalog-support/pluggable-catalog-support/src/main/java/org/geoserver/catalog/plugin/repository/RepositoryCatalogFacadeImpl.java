@@ -2,7 +2,7 @@
  * (c) 2014 Open Source Geospatial Foundation - all rights reserved (c) 2001 - 2013 OpenPlans This
  * code is licensed under the GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.catalog.plugin;
+package org.geoserver.catalog.plugin.repository;
 
 import static java.lang.String.format;
 
@@ -33,6 +33,8 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.impl.ProxyUtils;
+import org.geoserver.catalog.plugin.Patch;
+import org.geoserver.catalog.plugin.Query;
 import org.geotools.util.logging.Logging;
 import org.opengis.filter.Filter;
 import org.opengis.filter.sort.SortBy;
@@ -572,7 +574,7 @@ public class RepositoryCatalogFacadeImpl extends CatalogInfoRepositoryHolderImpl
             Query<LayerGroupInfo> lgq = new Query<>(LayerGroupInfo.class, query);
             Stream<LayerInfo> layers = query(lq);
             Stream<LayerGroupInfo> groups = query(lgq);
-            Comparator<CatalogInfo> comparator = CatalogInfoLookup.toComparator(query);
+            Comparator<CatalogInfo> comparator = query.toComparator();
             stream = Stream.concat(layers, groups).sorted(comparator).map(query.getType()::cast);
         } else {
             try {

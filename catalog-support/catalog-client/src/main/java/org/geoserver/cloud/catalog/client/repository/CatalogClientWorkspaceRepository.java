@@ -9,7 +9,7 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.NonNull;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.WorkspaceRepository;
+import org.geoserver.catalog.plugin.repository.WorkspaceRepository;
 import org.springframework.lang.Nullable;
 
 public class CatalogClientWorkspaceRepository extends CatalogClientRepository<WorkspaceInfo>

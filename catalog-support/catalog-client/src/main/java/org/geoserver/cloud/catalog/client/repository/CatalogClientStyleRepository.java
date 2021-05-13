@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StyleRepository;
+import org.geoserver.catalog.plugin.repository.StyleRepository;
 
 public class CatalogClientStyleRepository extends CatalogClientRepository<StyleInfo>
         implements StyleRepository {

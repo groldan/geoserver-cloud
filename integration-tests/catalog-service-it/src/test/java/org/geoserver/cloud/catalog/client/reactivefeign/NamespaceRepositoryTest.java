@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.geoserver.catalog.NamespaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.NamespaceRepository;
+import org.geoserver.catalog.plugin.repository.NamespaceRepository;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

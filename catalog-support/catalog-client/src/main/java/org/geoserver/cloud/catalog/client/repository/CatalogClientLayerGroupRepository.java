@@ -11,7 +11,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerGroupRepository;
+import org.geoserver.catalog.plugin.repository.LayerGroupRepository;
 
 public class CatalogClientLayerGroupRepository extends CatalogClientRepository<LayerGroupInfo>
         implements LayerGroupRepository {

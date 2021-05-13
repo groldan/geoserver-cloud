@@ -22,8 +22,8 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.WMSLayerInfo;
 import org.geoserver.catalog.WMTSLayerInfo;
 import org.geoserver.catalog.impl.WMSLayerInfoImpl;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.ResourceRepository;
 import org.geoserver.catalog.plugin.Query;
+import org.geoserver.catalog.plugin.repository.ResourceRepository;
 import org.geoserver.ows.util.OwsUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -184,7 +184,10 @@ public class ResourceRepositoryTest
     public @Test void testResourceInfoCRUD_CoverageInfo() {
         CoverageInfo toCreate =
                 testData.createCoverage(
-                        "coverageCRUD", testData.coverageStoreA, "coverageCRUD_name");
+                        "coverageCRUD",
+                        "coverageCRUD_name",
+                        testData.namespaceA,
+                        testData.coverageStoreA);
         crudTest(
                 toCreate,
                 serverCatalog::getCoverage,

@@ -15,7 +15,7 @@ import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerGroupRepository;
+import org.geoserver.catalog.plugin.repository.LayerGroupRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.opengis.filter.Filter;

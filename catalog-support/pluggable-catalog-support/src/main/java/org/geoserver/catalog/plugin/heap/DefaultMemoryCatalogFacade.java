@@ -2,21 +2,15 @@
  * (c) 2014 - 2015 Open Source Geospatial Foundation - all rights reserved (c) 2001 - 2013 OpenPlans
  * This code is licensed under the GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.catalog.plugin;
+package org.geoserver.catalog.plugin.heap;
 
 import java.util.function.Supplier;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogFacade;
 import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.CatalogRepository;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.LayerGroupInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.LayerInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.MapInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.NamespaceInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.ResourceInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.StoreInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.StyleInfoLookup;
-import org.geoserver.catalog.plugin.CatalogInfoLookup.WorkspaceInfoLookup;
+import org.geoserver.catalog.plugin.repository.CatalogInfoRepository;
+import org.geoserver.catalog.plugin.repository.RepositoryCatalogFacadeImpl;
 
 /**
  * Default catalog facade implementation using in-memory {@link CatalogRepository repositories} to

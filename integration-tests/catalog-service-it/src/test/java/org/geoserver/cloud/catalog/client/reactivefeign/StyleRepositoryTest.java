@@ -15,7 +15,7 @@ import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.impl.LegendInfoImpl;
 import org.geoserver.catalog.impl.StyleInfoImpl;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.StyleRepository;
+import org.geoserver.catalog.plugin.repository.StyleRepository;
 import org.junit.Test;
 import org.opengis.filter.Filter;
 import org.springframework.beans.factory.annotation.Autowired;

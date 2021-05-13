@@ -2,12 +2,14 @@
  * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.catalog.plugin;
+package org.geoserver.catalog.plugin.example;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogConformanceTest;
 import org.geoserver.catalog.CatalogInfo;
+import org.geoserver.catalog.plugin.CatalogPlugin;
 import org.geoserver.catalog.plugin.forwarding.ResolvingCatalogFacadeDecorator;
+import org.geoserver.catalog.plugin.heap.DefaultMemoryCatalogFacade;
 import org.geoserver.catalog.plugin.resolving.CatalogPropertyResolver;
 import org.geoserver.catalog.plugin.resolving.CollectionPropertiesInitializer;
 import org.geoserver.catalog.plugin.resolving.ResolvingProxyResolver;

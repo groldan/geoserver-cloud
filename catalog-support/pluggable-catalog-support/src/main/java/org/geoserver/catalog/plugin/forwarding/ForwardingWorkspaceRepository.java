@@ -6,7 +6,7 @@ package org.geoserver.catalog.plugin.forwarding;
 
 import java.util.Optional;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.WorkspaceRepository;
+import org.geoserver.catalog.plugin.repository.WorkspaceRepository;
 
 public class ForwardingWorkspaceRepository
         extends ForwardingCatalogRepository<WorkspaceInfo, WorkspaceRepository>

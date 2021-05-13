@@ -61,7 +61,7 @@ public class DataDirectoryAutoConfigurationTest extends GeoServerBackendConfigur
         Assume.assumeTrue(rawCatalog instanceof org.geoserver.catalog.plugin.CatalogPlugin);
         assertThat(
                 rawCatalogFacade,
-                instanceOf(org.geoserver.catalog.plugin.DefaultMemoryCatalogFacade.class));
+                instanceOf(org.geoserver.catalog.plugin.heap.DefaultMemoryCatalogFacade.class));
         assertSame(
                 rawCatalogFacade,
                 ((org.geoserver.catalog.plugin.CatalogPlugin) rawCatalog).getRawFacade());

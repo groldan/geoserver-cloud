@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.StyleInfo;
-import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
+import org.geoserver.catalog.plugin.repository.LayerRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
