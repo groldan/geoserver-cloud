@@ -266,5 +266,21 @@
         </dependency>
       </dependencies>
     </profile>
+    <profile>
+      <id>backuprestore</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.geoserver.community.backuprestore</groupId>
+          <artifactId>gs-backup-restore-web</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>org.geoserver.community.backuprestore</groupId>
+          <artifactId>gs-backup-restore-extension</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 </project>

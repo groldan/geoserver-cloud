@@ -17,6 +17,8 @@ spring:
     web-application-type: servlet
   application:
     name: web-ui
+  # prevent backup-restore extension's spring-batch job from running at start up
+  batch.job.enabled: false
   cloud:
     config:
       fail-fast: true

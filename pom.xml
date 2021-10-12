@@ -489,6 +489,21 @@
         <version>${gs.community.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.geoserver.community.backuprestore</groupId>
+        <artifactId>gs-backup-restore-extension</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.community.backuprestore</groupId>
+        <artifactId>gs-backup-restore-rest</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.community.backuprestore</groupId>
+        <artifactId>gs-backup-restore-web</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-main</artifactId>
         <version>${gt.version}</version>

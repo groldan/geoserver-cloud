@@ -5,6 +5,7 @@
 package org.geoserver.cloud.autoconfigure.web.extension;
 
 import org.geoserver.cloud.autoconfigure.web.extension.geostyler.GeoStylerAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.extension.backuprestore.BackupRestoreAutoConfiguration;
 import org.geoserver.cloud.autoconfigure.web.extension.importer.ImporterAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -12,6 +13,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({
     ImporterAutoConfiguration.class, //
-    GeoStylerAutoConfiguration.class //
+    GeoStylerAutoConfiguration.class, //
+    BackupRestoreAutoConfiguration.class //
 })
 public class ExtensionsAutoConfiguration {}
