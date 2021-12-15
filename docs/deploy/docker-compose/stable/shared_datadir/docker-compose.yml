@@ -5,7 +5,7 @@ volumes:
   # /opt/app is owned by the user geo:geo (603:603) in the containers. Otherwise it'd be owned by root
   # uncomment the driver_opts entry to bind mount an existing datadirectory and set the device: <path>
   # accordingly to the location of the data directory in the host
-  shared_data_directory:
+  datadir:
     #driver_opts:
       #type: none
       #o: bind
@@ -16,6 +16,21 @@ networks:
   gs-cloud-network:
         
 services:
+
+  admin:
+    image: groldan/geoserver-cloud-admin-server:1.0-SNAPSHOT-openjdk
+    depends_on:
+      - config
+    ports:
+      - 9091:8080
+    networks:
+      - gs-cloud-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
   rabbitmq:
     image: rabbitmq:3.9-management
     restart: always
@@ -34,7 +49,7 @@ services:
   # Browse to http://localhost:8761 to check all services are registered.
   # Run docker-compose -f docker-compose.yml -f docker-compose-discovery-ha.yml to run extra discovery service instances for HA
   discovery:
-    image: geoservercloud/geoserver-cloud-discovery:1.0-RC3
+    image: groldan/geoserver-cloud-discovery:1.0-SNAPSHOT-openjdk
     ports:
       - 8761:8761
     networks:
@@ -50,7 +65,7 @@ services:
   # microservices. Being a Discovery First Bootstrap configuration, it'll
   # register itself with the Eureka discovery service and can be scaled
   config:
-    image: geoservercloud/geoserver-cloud-config:1.0-RC3
+    image: groldan/geoserver-cloud-config:1.0-SNAPSHOT-openjdk
     depends_on:
       - discovery
       - rabbitmq
@@ -61,8 +76,8 @@ services:
       SPRING_PROFILES_ACTIVE: git
       # 'git' profile config
       CONFIG_GIT_URI: https://github.com/geoserver/geoserver-cloud-config.git
-      # get the config for this release from the v1.0-RC3 tag
-      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: v1.0-RC3
+      # get the config for this release from the v1.0-SNAPSHOT-openjdk tag
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
       # where to store the cloned repository, if unset, it'll use /tmp/config-repo-<randomid>
       CONFIG_GIT_BASEDIR: /opt/app/git_config
       # 'native' profile config
@@ -81,7 +96,7 @@ services:
   # Application facade, provides a single entry point routing to all
   # microservices (e.g. http://localhost:9090/geoserver/wms, http://localhost:9090/geoserver/wfs, etc)
   gateway:
-    image: geoservercloud/geoserver-cloud-gateway:1.0-RC3
+    image: groldan/geoserver-cloud-gateway:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
@@ -98,14 +113,14 @@ services:
 
   # WFS microservice, port dynamically allocated to allow scaling (e.g docker-compose scale wfs=5)
   wfs:
-    image: geoservercloud/geoserver-cloud-wfs:1.0-RC3
+    image: groldan/geoserver-cloud-wfs:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
       SPRING_PROFILES_ACTIVE: "datadir"
       GEOSERVER_DATA_DIR: /opt/app/data_directory
     volumes:
-      - shared_data_directory:/opt/app/data_directory
+      - datadir:/opt/app/data_directory
     networks:
       - gs-cloud-network
     deploy:
@@ -116,14 +131,14 @@ services:
 
   # WMS microservice, port dynamically allocated to allow scaling (e.g docker-compose scale wms=5)
   wms:
-    image: geoservercloud/geoserver-cloud-wms:1.0-RC3
+    image: groldan/geoserver-cloud-wms:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
       SPRING_PROFILES_ACTIVE: "datadir"
       GEOSERVER_DATA_DIR: /opt/app/data_directory
     volumes:
-      - shared_data_directory:/opt/app/data_directory
+      - datadir:/opt/app/data_directory
     networks:
       - gs-cloud-network
     deploy:
@@ -134,14 +149,14 @@ services:
 
   # WCS microservice, port dynamically allocated to allow scaling (e.g docker-compose scale wcs=5)
   wcs:
-    image: geoservercloud/geoserver-cloud-wcs:1.0-RC3
+    image: groldan/geoserver-cloud-wcs:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
       SPRING_PROFILES_ACTIVE: "datadir"
       GEOSERVER_DATA_DIR: /opt/app/data_directory
     volumes:
-      - shared_data_directory:/opt/app/data_directory
+      - datadir:/opt/app/data_directory
     networks:
       - gs-cloud-network
     deploy:
@@ -152,14 +167,14 @@ services:
 
   # REST config microservice, port dynamically allocated to allow scaling (e.g docker-compose scale rest=5)
   rest:
-    image: geoservercloud/geoserver-cloud-rest:1.0-RC3
+    image: groldan/geoserver-cloud-rest:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
       SPRING_PROFILES_ACTIVE: "datadir"
       GEOSERVER_DATA_DIR: /opt/app/data_directory
     volumes:
-      - shared_data_directory:/opt/app/data_directory
+      - datadir:/opt/app/data_directory
     networks:
       - gs-cloud-network
     deploy:
@@ -172,14 +187,14 @@ services:
 
   # WEB UI microservice
   webui:
-    image: geoservercloud/geoserver-cloud-webui:1.0-RC3
+    image: groldan/geoserver-cloud-webui:1.0-SNAPSHOT-openjdk
     depends_on:
       - config
     environment:
       SPRING_PROFILES_ACTIVE: "datadir"
       GEOSERVER_DATA_DIR: /opt/app/data_directory
     volumes:
-      - shared_data_directory:/opt/app/data_directory
+      - datadir:/opt/app/data_directory
     networks:
       - gs-cloud-network
     deploy:

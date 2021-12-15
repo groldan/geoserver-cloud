@@ -1,24 +1,24 @@
-FROM adoptopenjdk:11-jre-openj9 as builder
+FROM eclipse-temurin:11-jre as builder
 ARG JAR_FILE=target/gs-cloud-*-bin.jar
 
-RUN apt update && \ 
-apt install -y fonts-deva \
-fonts-font-awesome \
-fonts-freefont-ttf \
-fonts-material-design-icons-iconfont \
-fonts-materialdesignicons-webfont \
-fonts-roboto
+#RUN apt update && \ 
+#apt install -y fonts-deva \
+#fonts-font-awesome \
+#fonts-freefont-ttf \
+#fonts-material-design-icons-iconfont \
+#fonts-materialdesignicons-webfont \
+#fonts-roboto
 
 COPY ${JAR_FILE} application.jar
 
 RUN java -Djarmode=layertools -jar application.jar extract
 
 ##########
-FROM adoptopenjdk:11-jre-openj9
+FROM eclipse-temurin:11-jre
 
 LABEL maintainer="GeoServer PSC <geoserver-users@lists.sourceforge.net>"
 
-COPY --from=builder /usr/share/fonts/truetype/* /usr/share/fonts/truetype/
+#COPY --from=builder /usr/share/fonts/truetype/* /usr/share/fonts/truetype/
 
 RUN mkdir -p /opt/app/bin \
     && mkdir -p /opt/app/data_directory \ 
