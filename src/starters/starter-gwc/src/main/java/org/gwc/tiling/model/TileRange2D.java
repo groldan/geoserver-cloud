@@ -4,8 +4,10 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigInteger;
 import java.util.Objects;
@@ -17,7 +19,10 @@ import java.util.stream.Stream;
 /**
  * @since 1.0
  */
-public @Value class TileRange2D implements Comparable<TileRange2D> {
+@Value
+@Builder
+@Jacksonized
+public class TileRange2D implements Comparable<TileRange2D> {
 
     private @NonNull TileIndex2D lowerLeft;
 

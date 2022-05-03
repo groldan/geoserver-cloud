@@ -4,57 +4,45 @@
  */
 package org.gwc.tiling.service;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.gwc.tiling.event.jobs.CacheJobAbortComand;
-import org.gwc.tiling.event.jobs.CacheJobEvent;
-import org.gwc.tiling.event.jobs.CacheJobListCommand;
-import org.gwc.tiling.event.jobs.CacheJobStartCommand;
 import org.gwc.tiling.model.CacheJobInfo;
 import org.gwc.tiling.model.CacheJobRequest;
+import org.gwc.tiling.model.CacheJobStatus;
 
 import java.util.List;
-import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.Optional;
 
 /**
- * CacheJobManager.joinCluster() -> {@link CacheJobListCommand} CacheJobRegistry.onCacheJobn
+ * Primary interface to interact with cache jobs, allows to launch, inspect, and manage (abort,
+ * prune) tile cache jobs.
  *
  * @since 1.0
  */
-@RequiredArgsConstructor
-public class CacheJobManager {
+public interface CacheJobManager {
 
-    private final @NonNull CacheJobRegistry registry;
-    private final @NonNull Supplier<CacheJobRequestBuilder> requestBuilderFactory;
-    private final @NonNull Consumer<? super CacheJobEvent> eventPublisher;
+    CacheJobRequestBuilder newRequestBuilder();
 
-    public void joinCluster() {
-        eventPublisher.accept(new CacheJobListCommand());
-        throw new UnsupportedOperationException("implement");
-    }
+    List<CacheJobInfo> getJobs();
 
-    public void leaveCluster() {
-        throw new UnsupportedOperationException("implement");
-    }
+    Optional<CacheJobStatus> getJobStatus(String jobId);
 
-    public CacheJobRequestBuilder newRequestBuilder() {
-        return requestBuilderFactory.get();
-    }
+    /**
+     * Removes terminated (normally or abnormally) jobs and return their known status
+     *
+     * @throws IllegalStateException if not {@link #isRunning() running}
+     */
+    List<CacheJobStatus> pruneJobs();
 
-    public List<CacheJobInfo> getJobs() {
-        return registry.getJobs();
-    }
+    /**
+     * @param request
+     * @return
+     * @throws IllegalStateException if not {@link #isRunning() running}
+     */
+    CacheJobInfo launchJob(CacheJobRequest request);
 
-    public @NonNull CacheJobInfo launchJob(@NonNull CacheJobRequest request) {
-        CacheJobInfo jobInfo = new CacheJobInfo(UUID.randomUUID().toString(), request);
-        eventPublisher.accept(new CacheJobStartCommand(jobInfo));
-        return jobInfo;
-    }
-
-    public void cancelJob(@NonNull String jobId) {
-        eventPublisher.accept(new CacheJobAbortComand(jobId));
-    }
+    /**
+     * @param jobId
+     * @return
+     * @throws IllegalStateException if not {@link #isRunning() running}
+     */
+    Optional<CacheJobStatus> abortJob(String jobId);
 }

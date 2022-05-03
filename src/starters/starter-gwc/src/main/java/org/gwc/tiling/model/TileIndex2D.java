@@ -4,14 +4,19 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.Builder;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.function.LongUnaryOperator;
 
 /**
  * @since 1.0
  */
-public @Value class TileIndex2D implements Comparable<TileIndex2D> {
+@Value
+@Builder
+@Jacksonized
+public class TileIndex2D implements Comparable<TileIndex2D> {
     private long x;
     private long y;
 

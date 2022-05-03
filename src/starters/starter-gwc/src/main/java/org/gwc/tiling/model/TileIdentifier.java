@@ -4,13 +4,18 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * @since 1.0
  */
-public @Value class TileIdentifier {
+@Value
+@Builder
+@Jacksonized
+public class TileIdentifier {
 
     private @NonNull CacheIdentifier cache;
     private @NonNull TileIndex3D tileIndex;

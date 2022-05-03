@@ -16,9 +16,14 @@ import org.geowebcache.grid.GridSubset;
 import org.geowebcache.grid.GridSubsetFactory;
 import org.geowebcache.layer.TileLayer;
 import org.geowebcache.mime.MimeType;
+import org.gwc.tiling.integration.local.GridSubsetInfoAdapter;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -26,11 +31,30 @@ import java.util.stream.Collectors;
  */
 public class TileLayerMockSupport {
 
+    private ConcurrentMap<String, TileLayerInfo> layers = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, TileLayer> tileLayers = new ConcurrentHashMap<>();
+
     public final GridSet worldEpsg3857 = new DefaultGridsets(false, false).worldEpsg3857();
     public final GridSet worldEpsg4326 = new DefaultGridsets(false, false).worldEpsg4326();
 
-    public final GridSubset subset3857 = fullSubset(worldEpsg3857);
-    public final GridSubset subset4326 = fullSubset(worldEpsg4326);
+    private Map<String, GridSubset> subsets =
+            Map.of( //
+                    worldEpsg3857.getName(), fullSubset(worldEpsg3857), //
+                    worldEpsg4326.getName(), fullSubset(worldEpsg4326) //
+                    );
+
+    public final GridSubsetInfo subset3857 =
+            new GridSubsetInfoAdapter(subsets.get(worldEpsg3857.getName()));
+    public final GridSubsetInfo subset4326 =
+            new GridSubsetInfoAdapter(subsets.get(worldEpsg4326.getName()));
+
+    public Collection<TileLayerInfo> getLayers() {
+        return layers.values();
+    }
+
+    public Collection<TileLayer> getTileLayers() {
+        return tileLayers.values();
+    }
 
     public GridSubset fullSubset(@NonNull GridSet gridset) {
         int zoomStart = 0;
@@ -39,15 +63,15 @@ public class TileLayerMockSupport {
                 gridset, gridset.getBounds(), zoomStart, zoomStop);
     }
 
-    public TileLayer mockLayer(
-            @NonNull String name, @NonNull GridSubset gridSubset, @NonNull MimeType mimeType) {
+    public TileLayerInfo mockLayer(
+            @NonNull String name, @NonNull GridSubsetInfo gridSubset, @NonNull MimeType mimeType) {
 
         return this.mockLayer(name, gridSubset, mimeType, null);
     }
 
-    public TileLayer mockLayer(
+    public TileLayerInfo mockLayer(
             @NonNull String name,
-            @NonNull GridSubset gridSubset,
+            @NonNull GridSubsetInfo gridSubset,
             @NonNull MimeType mimeType,
             String parameterIds) {
 
@@ -58,7 +82,32 @@ public class TileLayerMockSupport {
                 parameterIds == null ? List.of() : List.of(parameterIds));
     }
 
-    public TileLayer mockLayer(
+    public TileLayerInfo mockLayer(
+            String name,
+            Set<GridSubsetInfo> gridSubsets,
+            List<MimeType> mimeTypes,
+            List<String> parameterIds) {
+
+        Set<String> formats =
+                mimeTypes.stream().map(MimeType::getFormat).collect(Collectors.toSet());
+        int metaTilingHeight = 4;
+        int metaTilingWidth = metaTilingHeight;
+        TileLayerInfoImpl l =
+                new TileLayerInfoImpl(
+                        name, formats, List.copyOf(gridSubsets), metaTilingWidth, metaTilingHeight);
+        this.layers.put(name, l);
+
+        Set<GridSubset> realSubsets =
+                gridSubsets.stream()
+                        .map(GridSubsetInfo::getName)
+                        .map(subsets::get)
+                        .collect(Collectors.toSet());
+        TileLayer tileLayer = mockTileLayer(name, realSubsets, mimeTypes, parameterIds);
+        this.tileLayers.put(name, tileLayer);
+        return l;
+    }
+
+    private TileLayer mockTileLayer(
             String name,
             Set<GridSubset> gridSubsets,
             List<MimeType> mimeTypes,

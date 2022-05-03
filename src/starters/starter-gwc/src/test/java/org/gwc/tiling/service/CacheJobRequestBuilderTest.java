@@ -11,15 +11,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.geowebcache.filter.parameters.ParametersUtils;
 import org.geowebcache.grid.BoundingBox;
-import org.geowebcache.grid.GridSubset;
-import org.geowebcache.layer.TileLayer;
 import org.geowebcache.mime.ApplicationMime;
 import org.geowebcache.mime.ImageMime;
 import org.geowebcache.mime.MimeType;
 import org.gwc.tiling.model.CacheIdentifier;
 import org.gwc.tiling.model.CacheJobRequest;
+import org.gwc.tiling.model.GridSubsetInfo;
+import org.gwc.tiling.model.TileLayerInfo;
 import org.gwc.tiling.model.TileLayerMockSupport;
 import org.gwc.tiling.model.TilePyramid;
+import org.gwc.tiling.model.TilePyramidBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,20 +40,20 @@ class CacheJobRequestBuilderTest {
 
     private CacheJobRequestBuilder builder;
 
-    private Map<String, TileLayer> layers;
+    private Map<String, TileLayerInfo> layers;
     private Map<String, Set<String>> paramIds;
 
     private final TileLayerMockSupport support = new TileLayerMockSupport();
 
-    private final GridSubset subset3857 = support.subset3857;
-    private final GridSubset subset4326 = support.subset4326;
+    private final GridSubsetInfo subset3857 = support.subset3857;
+    private final GridSubsetInfo subset4326 = support.subset4326;
 
-    private TileLayer mockLayer(
+    private TileLayerInfo mockLayer(
             String name,
-            Set<GridSubset> gridSubsets,
+            Set<GridSubsetInfo> gridSubsets,
             List<MimeType> mimeTypes,
             List<String> parameterIds) {
-        TileLayer l = support.mockLayer(name, gridSubsets, mimeTypes, parameterIds);
+        TileLayerInfo l = support.mockLayer(name, gridSubsets, mimeTypes, parameterIds);
         this.paramIds.put(name, new HashSet<>(parameterIds));
         this.layers.put(name, l);
         return l;
@@ -67,11 +68,10 @@ class CacheJobRequestBuilderTest {
                         layers::get, layer -> paramIds.getOrDefault(layer, Set.of()));
     }
 
-    @Test
-    void
+    public @Test void
             builds_cartesian_product_of_gridsubsets_mimetypes_and_parameterids_plus_default_param_id() {
 
-        Set<GridSubset> gridSubsets = Set.of(subset3857, subset4326);
+        Set<GridSubsetInfo> gridSubsets = Set.of(subset3857, subset4326);
         List<MimeType> mimeTypes = List.of(ImageMime.png, ApplicationMime.geojson);
         List<String> parameterIds = List.of("pid-1", "pid-2");
         mockLayer("layer:1", gridSubsets, mimeTypes, parameterIds);
@@ -89,7 +89,7 @@ class CacheJobRequestBuilderTest {
                             .flatMap(
                                     builder ->
                                             gridSubsets.stream()
-                                                    .map(GridSubset::getName)
+                                                    .map(GridSubsetInfo::getName)
                                                     .map(builder::gridsetId))
                             .flatMap(
                                     builder ->
@@ -110,8 +110,7 @@ class CacheJobRequestBuilderTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    void test_action_defaults_to_seed() {
+    public @Test void test_action_defaults_to_seed() {
         mockLayer("layer:1", Set.of(subset4326), List.of(ImageMime.png), List.of());
 
         List<CacheJobRequest> requests = builder.layer("layer:1").build();
@@ -119,8 +118,7 @@ class CacheJobRequestBuilderTest {
         assertEquals(CacheJobRequest.Action.SEED, requests.get(0).getAction());
     }
 
-    @Test
-    void test_parameterId_overrides_parameters() {
+    public @Test void test_parameterId_overrides_parameters() {
         mockLayer("layer:1", Set.of(subset4326), List.of(ImageMime.png), List.of());
 
         List<CacheJobRequest> requests =
@@ -132,8 +130,7 @@ class CacheJobRequestBuilderTest {
         assertEquals("param-id", requests.get(0).getCacheId().getParametersId().orElseThrow());
     }
 
-    @Test
-    void test_parameters_overrides_parametersId() {
+    public @Test void test_parameters_overrides_parametersId() {
         mockLayer("layer:1", Set.of(subset4326), List.of(ImageMime.png), List.of());
 
         Map<String, String> parameters = Map.of("p1", "v1", "p2", "v2");
@@ -151,8 +148,7 @@ class CacheJobRequestBuilderTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    void test_invalid_gridsetId() {
+    public @Test void test_invalid_gridsetId() {
         mockLayer("layer:1", Set.of(subset4326), List.of(ImageMime.png), List.of());
 
         builder =
@@ -164,8 +160,7 @@ class CacheJobRequestBuilderTest {
                 thrown.getMessage());
     }
 
-    @Test
-    void test_gridsetId() {
+    public @Test void test_gridsetId() {
         mockLayer(
                 "layer:1",
                 Set.of(subset4326, subset3857),
@@ -186,8 +181,7 @@ class CacheJobRequestBuilderTest {
                         .collect(Collectors.toSet()));
     }
 
-    @Test
-    void test_format_invalid() {
+    public @Test void test_format_invalid() {
         mockLayer(
                 "layer:1",
                 Set.of(subset3857, subset4326),
@@ -202,8 +196,7 @@ class CacheJobRequestBuilderTest {
         assertThat(thrown.getMessage()).contains("Unsupported format");
     }
 
-    @Test
-    void test_format_layer_not_supported() {
+    public @Test void test_format_layer_not_supported() {
         mockLayer(
                 "layer:1",
                 Set.of(subset3857, subset4326),
@@ -220,8 +213,7 @@ class CacheJobRequestBuilderTest {
                 thrown.getMessage());
     }
 
-    @Test
-    void test_formats_single() {
+    public @Test void test_formats_single() {
         mockLayer(
                 "layer:1",
                 Set.of(subset3857, subset4326),
@@ -242,8 +234,7 @@ class CacheJobRequestBuilderTest {
                         .collect(Collectors.toSet()));
     }
 
-    @Test
-    void test_formats_multiple() {
+    public @Test void test_formats_multiple() {
         mockLayer(
                 "layer:1",
                 Set.of(subset3857, subset4326),
@@ -265,8 +256,7 @@ class CacheJobRequestBuilderTest {
                         .collect(Collectors.toSet()));
     }
 
-    @Test
-    void test_formats_all() {
+    public @Test void test_formats_all() {
         mockLayer(
                 "layer:1",
                 Set.of(subset3857, subset4326),
@@ -289,9 +279,60 @@ class CacheJobRequestBuilderTest {
                         .collect(Collectors.toSet()));
     }
 
-    @Test
-    void test_full_bounds() {
-        TileLayer layer =
+    public @Test void test_min_max_zoom_level() {
+        GridSubsetInfo gridSubset = subset3857;
+        mockLayer("layer:1", Set.of(gridSubset), List.of(ImageMime.png, ImageMime.jpeg), List.of());
+
+        builder = builder.layer("layer:1");
+
+        Class<IllegalArgumentException> expected = IllegalArgumentException.class;
+        final int min =
+                Optional.ofNullable(gridSubset.getMinCachedZoomLevel())
+                        .orElse(gridSubset.getMinZoomLevel());
+        final int max =
+                Optional.ofNullable(gridSubset.getMaxCachedZoomLevel())
+                        .orElse(gridSubset.getMaxZoomLevel());
+
+        assertThrows(expected, builder.minZoomLevel(min - 1)::build);
+        assertThrows(expected, builder.minZoomLevel(max + 1)::build);
+
+        assertThrows(expected, builder.maxZoomLevel(min - 1)::build);
+        assertThrows(expected, builder.maxZoomLevel(max + 1)::build);
+
+        assertThrows(expected, builder.minZoomLevel(max).maxZoomLevel(min)::build);
+
+        assertZoomLevels(builder, gridSubset, null, max);
+        assertZoomLevels(builder, gridSubset, null, max - 1);
+        assertZoomLevels(builder, gridSubset, min, null);
+        assertZoomLevels(builder, gridSubset, min + 1, null);
+        assertZoomLevels(builder, gridSubset, min + 1, max - 1);
+        assertZoomLevels(builder, gridSubset, min + 1, min + 1);
+    }
+
+    private void assertZoomLevels(
+            CacheJobRequestBuilder builder, GridSubsetInfo gridSubset, Integer min, Integer max) {
+
+        final int subsetMin =
+                Optional.ofNullable(gridSubset.getMinCachedZoomLevel())
+                        .orElse(gridSubset.getMinZoomLevel());
+        final int subsetMax =
+                Optional.ofNullable(gridSubset.getMaxCachedZoomLevel())
+                        .orElse(gridSubset.getMaxZoomLevel());
+
+        int expectedMin = min == null ? subsetMin : min;
+        int expectedMax = max == null ? subsetMax : max;
+
+        List<CacheJobRequest> reqs = builder.minZoomLevel(min).maxZoomLevel(max).build();
+        reqs.forEach(
+                req -> {
+                    TilePyramid tiles = req.getTiles();
+                    assertEquals(expectedMin, tiles.minZoomLevel());
+                    assertEquals(expectedMax, tiles.maxZoomLevel());
+                });
+    }
+
+    public @Test void test_full_bounds() {
+        TileLayerInfo layer =
                 mockLayer(
                         "layer:1",
                         Set.of(subset4326, subset3857),
@@ -299,10 +340,10 @@ class CacheJobRequestBuilderTest {
                         List.of());
 
         final TilePyramid fullBundsPyramid4326 =
-                TilePyramid.builder().layer(layer).gridsetId(subset4326.getName()).build();
+                TilePyramidBuilder.builder().layer(layer).gridsetId(subset4326.getName()).build();
 
         final TilePyramid fullBundsPyramid3857 =
-                TilePyramid.builder().layer(layer).gridsetId(subset3857.getName()).build();
+                TilePyramidBuilder.builder().layer(layer).gridsetId(subset3857.getName()).build();
 
         builder = builder.layer("layer:1");
 
@@ -319,9 +360,8 @@ class CacheJobRequestBuilderTest {
         assertEquals(fullBundsPyramid3857, tiles);
     }
 
-    @Test
-    void test_tilesFromBounds() {
-        TileLayer layer =
+    public @Test void test_tilesFromBounds() {
+        TileLayerInfo layer =
                 mockLayer(
                         "layer:1",
                         Set.of(subset4326, subset3857),
@@ -332,7 +372,7 @@ class CacheJobRequestBuilderTest {
         final BoundingBox leftHemisphere = new BoundingBox(-180, -90, 0, 90);
 
         final TilePyramid leftHemispherePyramid =
-                TilePyramid.builder()
+                TilePyramidBuilder.builder()
                         .layer(layer)
                         .gridsetId(gridsetId)
                         .bounds(leftHemisphere)

@@ -12,14 +12,15 @@ import lombok.RequiredArgsConstructor;
 
 import org.geowebcache.filter.parameters.ParametersUtils;
 import org.geowebcache.grid.BoundingBox;
-import org.geowebcache.layer.TileLayer;
 import org.geowebcache.mime.MimeException;
 import org.geowebcache.mime.MimeType;
 import org.gwc.tiling.model.CacheIdentifier;
 import org.gwc.tiling.model.CacheIdentifier.CacheIdentifierBuilder;
 import org.gwc.tiling.model.CacheJobRequest;
 import org.gwc.tiling.model.CacheJobRequest.Action;
+import org.gwc.tiling.model.TileLayerInfo;
 import org.gwc.tiling.model.TilePyramid;
+import org.gwc.tiling.model.TilePyramidBuilder;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class CacheJobRequestBuilder {
 
-    private final @NonNull Function<String, TileLayer> tileLayerResolver;
+    private final @NonNull Function<String, TileLayerInfo> tileLayerResolver;
     private final @NonNull Function<String, Set<String>> tileLayerParametersIdsResolver;
 
     private Action action = Action.SEED;
@@ -52,6 +53,9 @@ public class CacheJobRequestBuilder {
 
     private Map<String, String> parameters = Map.of();
     private String parametersId;
+
+    private Integer minZooomLevel;
+    private Integer maxZooomLevel;
 
     public CacheJobRequestBuilder action(@NonNull Action action) {
         this.action = action;
@@ -90,9 +94,19 @@ public class CacheJobRequestBuilder {
         return this;
     }
 
+    public CacheJobRequestBuilder minZoomLevel(Integer minZoom) {
+        this.minZooomLevel = minZoom;
+        return this;
+    }
+
+    public CacheJobRequestBuilder maxZoomLevel(Integer maxZoom) {
+        this.maxZooomLevel = maxZoom;
+        return this;
+    }
+
     public List<CacheJobRequest> build() {
         final Instant timestamp = Instant.now();
-        final TileLayer layer = resolveLayer();
+        final TileLayerInfo layer = resolveLayer();
         Stream<CacheIdentifier> cacheIds = buildCacheIds(layer);
 
         return cacheIds.map(
@@ -104,13 +118,13 @@ public class CacheJobRequestBuilder {
                 .toList();
     }
 
-    private TileLayer resolveLayer() {
-        TileLayer layer = this.tileLayerResolver.apply(this.layerName);
+    private TileLayerInfo resolveLayer() {
+        TileLayerInfo layer = this.tileLayerResolver.apply(this.layerName);
         Objects.requireNonNull(layer, () -> "Layer '" + this.layerName + "' couldn't be resolved");
         return layer;
     }
 
-    private Stream<CacheIdentifier> buildCacheIds(TileLayer layer) {
+    private Stream<CacheIdentifier> buildCacheIds(TileLayerInfo layer) {
         String layerName = layer.getName();
         Set<String> gridsetIds = resolveGridsetIds(layer);
         List<String> formats = resolveFormats(layer);
@@ -128,8 +142,8 @@ public class CacheJobRequestBuilder {
                 .map(CacheIdentifierBuilder::build);
     }
 
-    private List<String> resolveFormats(TileLayer layer) {
-        Set<String> layerFormats = layerFormats(layer);
+    private List<String> resolveFormats(TileLayerInfo layer) {
+        Set<String> layerFormats = layer.getFormats();
         Set<String> requestedFormats = requestedFormats(layerFormats);
 
         verifyRequestedFormatsAreSupported(layer, requestedFormats, layerFormats);
@@ -138,7 +152,7 @@ public class CacheJobRequestBuilder {
     }
 
     protected void verifyRequestedFormatsAreSupported(
-            TileLayer layer, Set<String> requestedFormats, Set<String> layerFormats) {
+            TileLayerInfo layer, Set<String> requestedFormats, Set<String> layerFormats) {
 
         SetView<String> unsupported = Sets.difference(requestedFormats, layerFormats);
         if (!unsupported.isEmpty()) {
@@ -157,10 +171,6 @@ public class CacheJobRequestBuilder {
                 : formatNames(formats.stream().map(this::validateFormat));
     }
 
-    private Set<String> layerFormats(TileLayer layer) {
-        return formatNames(layer.getMimeTypes().stream());
-    }
-
     private Set<String> formatNames(Stream<MimeType> mimeTypes) {
         return mimeTypes.map(MimeType::getFormat).collect(Collectors.toCollection(TreeSet::new));
     }
@@ -173,8 +183,8 @@ public class CacheJobRequestBuilder {
         }
     }
 
-    private Set<String> resolveGridsetIds(TileLayer layer) {
-        Set<String> layerGridSubsets = new TreeSet<>(layer.getGridSubsets());
+    private Set<String> resolveGridsetIds(TileLayerInfo layer) {
+        Set<String> layerGridSubsets = layer.gridSubsetNames();
         Set<String> requestedSubsets =
                 this.gridsetId == null ? layerGridSubsets : Set.of(this.gridsetId);
         verifyRequestedGridsets(layerGridSubsets, requestedSubsets);
@@ -193,12 +203,19 @@ public class CacheJobRequestBuilder {
         }
     }
 
-    private TilePyramid resolveTilePyramid(@NonNull TileLayer layer, @NonNull String gridsetId) {
+    private TilePyramid resolveTilePyramid(
+            @NonNull TileLayerInfo layer, @NonNull String gridsetId) {
         BoundingBox bounds = this.bounds;
-        return TilePyramid.builder().layer(layer).gridsetId(gridsetId).bounds(bounds).build();
+        return TilePyramidBuilder.builder()
+                .layer(layer)
+                .gridsetId(gridsetId)
+                .bounds(bounds)
+                .minZoomLevel(minZooomLevel)
+                .maxZoomLevel(maxZooomLevel)
+                .build();
     }
 
-    private List<String> resolveParameterIds(TileLayer layer) {
+    private List<String> resolveParameterIds(TileLayerInfo layer) {
         List<String> parameterIds;
         if (!this.parameters.isEmpty()) {
             parameterIds = List.of(ParametersUtils.getId(this.parameters));

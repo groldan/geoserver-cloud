@@ -7,6 +7,7 @@ package org.gwc.tiling.model;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import java.util.Optional;
  */
 @Value
 @Builder
+@Jacksonized
 public class CacheIdentifier {
 
     private @NonNull String layerName;

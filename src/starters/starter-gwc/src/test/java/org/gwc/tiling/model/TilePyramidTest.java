@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import lombok.NonNull;
 
+import org.geowebcache.grid.GridSet;
 import org.geowebcache.grid.GridSubset;
-import org.geowebcache.layer.TileLayer;
 import org.geowebcache.mime.ImageMime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -41,27 +42,27 @@ class TilePyramidTest {
         return full(support.subset4326);
     }
 
-    TilePyramid full(GridSubset subset) {
+    TilePyramid full(GridSubsetInfo subset) {
         return builder(subset).build();
     }
 
-    TilePyramidBuilder builder(GridSubset subset) {
-        TileLayer layer = support.mockLayer("layer", subset, ImageMime.png24);
+    TilePyramidBuilder builder(GridSubsetInfo subset) {
+        TileLayerInfo layer = support.mockLayer("layer", subset, ImageMime.png24);
         String gridsetId = subset.getName();
-        return TilePyramid.builder().layer(layer).gridsetId(gridsetId);
+        return TilePyramidBuilder.builder().layer(layer).gridsetId(gridsetId);
     }
 
     @Test
     void testRangesOrder() {
-        GridSubset subset = support.subset3857;
+        GridSubsetInfo subset = support.subset3857;
         TilePyramid pyramid = full(subset);
 
-        final int numLevels = subset.getGridSet().getNumLevels();
+        final int numLevels = subset.numLevels();
         final SortedSet<TileRange3D> ranges = pyramid.getRanges();
 
         assertEquals(numLevels, pyramid.getRanges().size());
-        assertEquals(subset.getZoomStart(), pyramid.getMinZoomLevel());
-        assertEquals(subset.getZoomStop(), pyramid.getMaxZoomLevel());
+        assertEquals(subset.getMinZoomLevel(), pyramid.minZoomLevel());
+        assertEquals(subset.getMaxZoomLevel(), pyramid.maxZoomLevel());
 
         List<Integer> expected = IntStream.range(0, numLevels).mapToObj(Integer::valueOf).toList();
         List<Integer> actual = ranges.stream().map(TileRange3D::getZoomLevel).toList();
@@ -69,30 +70,81 @@ class TilePyramidTest {
     }
 
     @Test
+    void test_min_max_zoom_level() {
+        GridSubsetInfo gridSubset = support.subset3857;
+        TilePyramidBuilder builder = builder(gridSubset);
+
+        Class<IllegalArgumentException> expected = IllegalArgumentException.class;
+        final int min =
+                Optional.ofNullable(gridSubset.getMinCachedZoomLevel())
+                        .orElse(gridSubset.getMinZoomLevel());
+        final int max =
+                Optional.ofNullable(gridSubset.getMaxCachedZoomLevel())
+                        .orElse(gridSubset.getMaxZoomLevel());
+
+        assertThrows(expected, builder.minZoomLevel(min - 1)::build);
+        assertThrows(expected, builder.minZoomLevel(max + 1)::build);
+
+        assertThrows(expected, builder.maxZoomLevel(min - 1)::build);
+        assertThrows(expected, builder.maxZoomLevel(max + 1)::build);
+
+        assertThrows(expected, builder.minZoomLevel(max).maxZoomLevel(min)::build);
+
+        assertZoomLevels(builder, gridSubset, null, max);
+        assertZoomLevels(builder, gridSubset, null, max - 1);
+        assertZoomLevels(builder, gridSubset, min, null);
+        assertZoomLevels(builder, gridSubset, min + 1, null);
+        assertZoomLevels(builder, gridSubset, min + 1, max - 1);
+        assertZoomLevels(builder, gridSubset, min + 1, min + 1);
+    }
+
+    private void assertZoomLevels(
+            TilePyramidBuilder builder, GridSubsetInfo gridSubset, Integer min, Integer max) {
+
+        final int subsetMin =
+                Optional.ofNullable(gridSubset.getMinCachedZoomLevel())
+                        .orElse(gridSubset.getMinZoomLevel());
+        final int subsetMax =
+                Optional.ofNullable(gridSubset.getMaxCachedZoomLevel())
+                        .orElse(gridSubset.getMaxZoomLevel());
+
+        int expectedMin = min == null ? subsetMin : min;
+        int expectedMax = max == null ? subsetMax : max;
+
+        TilePyramid tiles = builder.minZoomLevel(min).maxZoomLevel(max).build();
+        assertEquals(expectedMin, tiles.minZoomLevel());
+        assertEquals(expectedMax, tiles.maxZoomLevel());
+    }
+
+    @Test
     void testFullBounds_3857() {
-        testFullBounds(support.subset3857);
+        GridSet gridset = support.worldEpsg3857;
+        GridSubset fullSubset = support.fullSubset(gridset);
+        testFullBounds(support.subset3857, fullSubset);
     }
 
     @Test
     void testFullBounds_4326() {
-        testFullBounds(support.subset4326);
+        GridSet gridset = support.worldEpsg4326;
+        GridSubset fullSubset = support.fullSubset(gridset);
+        testFullBounds(support.subset4326, fullSubset);
     }
 
-    void testFullBounds(@NonNull GridSubset subset) {
+    void testFullBounds(@NonNull GridSubsetInfo subset, @NonNull GridSubset orig) {
         TilePyramidBuilder builder = builder(subset);
-        TileLayer layer = builder.layer();
+        TileLayerInfo layer = builder.layer();
         TilePyramid pyramid = builder.build();
         assertEquals(pyramid, builder(subset).bounds(null).build());
 
-        long[][] coverages = subset.getCoverages();
-        int[] metaTilingFactors = layer.getMetaTilingFactors();
+        long[][] coverages = orig.getCoverages();
+        int[] metaTilingFactors = {layer.getMetaTilingWidth(), layer.getMetaTilingHeight()};
         // {z}{minx,miny,maxx,maxy,z}
-        long[][] coveredGridLevels = subset.expandToMetaFactors(coverages, metaTilingFactors);
+        long[][] coveredGridLevels = orig.expandToMetaFactors(coverages, metaTilingFactors);
 
-        for (int z = subset.getZoomStart(); z <= subset.getZoomStop(); z++) {
+        for (int z = orig.getZoomStart(); z <= orig.getZoomStop(); z++) {
             long[] coverage = coveredGridLevels[z];
 
-            TileRange3D range = pyramid.getRange(z).orElseThrow();
+            TileRange3D range = pyramid.range(z).orElseThrow();
             assertEquals(z, range.getZoomLevel());
             TileIndex2D lowerLeft = range.getTiles().getLowerLeft();
             TileIndex2D upperRight = range.getTiles().getUpperRight();

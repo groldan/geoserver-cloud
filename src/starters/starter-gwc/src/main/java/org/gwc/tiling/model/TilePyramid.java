@@ -4,8 +4,12 @@
  */
 package org.gwc.tiling.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigInteger;
 import java.util.Collections;
@@ -21,7 +25,10 @@ import java.util.stream.Stream;
  * @see TilePyramidBuilder
  * @see #builder()
  */
-public @Value class TilePyramid {
+@Value
+@Builder
+@Jacksonized
+public class TilePyramid {
 
     private SortedSet<TileRange3D> ranges;
 
@@ -29,10 +36,7 @@ public @Value class TilePyramid {
         this.ranges = Collections.unmodifiableSortedSet(new TreeSet<>(ranges));
     }
 
-    public static TilePyramidBuilder builder() {
-        return new TilePyramidBuilder();
-    }
-
+    @JsonIgnore
     public boolean isEmpty() {
         return count().equals(BigInteger.ZERO);
     }
@@ -54,15 +58,15 @@ public @Value class TilePyramid {
                 .orElse(BigInteger.ZERO);
     }
 
-    public int getMinZoomLevel() {
+    public int minZoomLevel() {
         return ranges.first().getZoomLevel();
     }
 
-    public int getMaxZoomLevel() {
+    public int maxZoomLevel() {
         return ranges.last().getZoomLevel();
     }
 
-    public Optional<TileRange3D> getRange(int zoomLevel) {
+    public Optional<TileRange3D> range(int zoomLevel) {
         return ranges.stream().filter(r -> r.getZoomLevel() == zoomLevel).findFirst();
     }
 
@@ -81,11 +85,11 @@ public @Value class TilePyramid {
     }
 
     public TilePyramid fromLevel(int minZLevel) {
-        return subset(minZLevel, getMaxZoomLevel());
+        return subset(minZLevel, maxZoomLevel());
     }
 
     public TilePyramid toLevel(int maxZLevel) {
-        return subset(getMinZoomLevel(), maxZLevel);
+        return subset(minZoomLevel(), maxZLevel);
     }
 
     public TilePyramid subset(int minZLevel, int maxZLevel) {

@@ -4,15 +4,22 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.util.stream.Stream;
 
 /**
  * @since 1.0
  */
-public @Value class MetaTileIdentifier {
+@Value
+@Builder
+@Jacksonized
+@AllArgsConstructor
+public class MetaTileIdentifier {
 
     private @NonNull CacheIdentifier cache;
     private @NonNull TileRange3D tiles;

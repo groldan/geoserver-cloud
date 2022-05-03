@@ -4,34 +4,35 @@
  */
 package org.gwc.tiling.service;
 
+import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.geowebcache.layer.TileLayer;
 import org.gwc.tiling.model.MetaTileIdentifier;
+import org.gwc.tiling.model.TileLayerInfo;
 
 /**
- * Blocking worker for (re)seeding/truncating a {@link TileLayer}
+ * Blocking worker for (re)seeding/truncating a tile layer
  *
  * @since 1.0
  */
 @RequiredArgsConstructor
 public abstract class TileLayerSeeder {
 
-    protected final @NonNull TileLayer layer;
+    private final @NonNull @Getter TileLayerInfo layer;
 
     /**
      * @return
      */
     public int getMetaWidth() {
-        return layer.getMetaTilingFactors()[0];
+        return layer.getMetaTilingWidth();
     }
 
     /**
      * @return
      */
     public int getMetaHeight() {
-        return layer.getMetaTilingFactors()[1];
+        return layer.getMetaTilingHeight();
     }
 
     /**

@@ -4,13 +4,18 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * @since 1.0
  */
-public @Value class TileIndex3D implements Comparable<TileIndex3D> {
+@Value
+@Builder
+@Jacksonized
+public class TileIndex3D implements Comparable<TileIndex3D> {
 
     private @NonNull TileIndex2D index;
     private int z;

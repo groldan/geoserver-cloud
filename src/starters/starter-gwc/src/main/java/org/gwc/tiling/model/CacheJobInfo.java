@@ -4,15 +4,19 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.With;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * @since 1.0
  */
 @Value
 @With
+@Builder
+@Jacksonized
 public class CacheJobInfo {
 
     private @NonNull String id;

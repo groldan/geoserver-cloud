@@ -10,14 +10,9 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import org.geowebcache.grid.BoundingBox;
-import org.geowebcache.grid.GridSubset;
-import org.geowebcache.layer.TileLayer;
 
 import java.util.Objects;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 /**
  * @since 1.0
@@ -25,48 +20,70 @@ import java.util.stream.Stream;
 @Accessors(chain = true, fluent = true)
 public class TilePyramidBuilder {
 
-    private @Setter @Getter TileLayer layer;
+    private @Setter @Getter TileLayerInfo layer;
     private @Setter @Getter String gridsetId;
     private @Setter @Getter BoundingBox bounds;
+    private @Setter @Getter Integer minZoomLevel;
+    private @Setter @Getter Integer maxZoomLevel;
+
+    public static TilePyramidBuilder builder() {
+        return new TilePyramidBuilder();
+    }
 
     public TilePyramid build() {
         Objects.requireNonNull(layer, "layer can't be null");
         Objects.requireNonNull(gridsetId, "gridsetId can't be null");
 
-        final @NonNull GridSubset gridSubset = layer.getGridSubset(gridsetId);
-        long[][] coveredGridLevels = resolveCoverageGridLevels(layer, bounds, gridSubset);
+        final @NonNull GridSubsetInfo gridSubset = layer.gridSubset(gridsetId).orElseThrow();
+        final int minLevel = resolveMinLevel(gridSubset);
+        final int maxLevel = resolveMaxLevel(gridSubset);
+        validateZoomLevels(minLevel, maxLevel);
 
-        SortedSet<TileRange3D> levelRanges =
-                Stream.of(coveredGridLevels)
-                        // could be null in case calling code is only interested in a subset of zoom
-                        // levels
-                        .filter(Objects::nonNull)
-                        .map(TilePyramidBuilder::gridCoverageToTileRange)
-                        .collect(Collectors.toCollection(TreeSet::new));
-
-        return new TilePyramid(levelRanges);
+        TilePyramid gridsetPyramid =
+                gridSubset.createTilePyramid(
+                        layer.getMetaTilingWidth(), layer.getMetaTilingHeight(), bounds);
+        return gridsetPyramid.subset(minLevel, maxLevel);
     }
 
-    private static TileRange3D gridCoverageToTileRange(long[] levelCoverage) {
-        int z = (int) levelCoverage[4];
-        long minx = levelCoverage[0];
-        long miny = levelCoverage[1];
-        long maxx = levelCoverage[2];
-        long maxy = levelCoverage[3];
-        return TileRange3D.of(z, minx, miny, maxx, maxy);
-    }
-
-    private static long[][] resolveCoverageGridLevels(
-            @NonNull TileLayer layer, BoundingBox boundingBox, GridSubset gridSubset) {
-
-        long[][] coveredGridLevels;
-        if (boundingBox == null) {
-            coveredGridLevels = gridSubset.getCoverages();
-        } else {
-            coveredGridLevels = gridSubset.getCoverageIntersections(boundingBox);
+    protected void validateZoomLevels(final int minZoomLevel, final int maxZoomLevel) {
+        if (minZoomLevel > maxZoomLevel) {
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Min zoom level (%d) can't be greater than max zoom level (%d)",
+                            minZoomLevel, maxZoomLevel));
         }
-        int[] metaTilingFactors = layer.getMetaTilingFactors();
-        coveredGridLevels = gridSubset.expandToMetaFactors(coveredGridLevels, metaTilingFactors);
-        return coveredGridLevels;
+    }
+
+    private int resolveMinLevel(@NonNull GridSubsetInfo gridSubset) {
+        final int subsetMin = subsetMinLevel(gridSubset);
+        if (null == minZoomLevel) return subsetMin;
+
+        if (minZoomLevel < subsetMin)
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Min zoom level must be >= than %d for grid subset %s. Got %d",
+                            subsetMin, gridSubset.getName(), minZoomLevel));
+
+        return minZoomLevel;
+    }
+
+    private int resolveMaxLevel(@NonNull GridSubsetInfo gridSubset) {
+        final int subsetMax = subsetMaxLevel(gridSubset);
+        if (null == maxZoomLevel) return subsetMax;
+        if (maxZoomLevel > subsetMax)
+            throw new IllegalArgumentException(
+                    String.format(
+                            "Max zoom level must be <= than %d for grid subset %s. Got %d",
+                            subsetMax, gridSubset.getName(), maxZoomLevel));
+        return maxZoomLevel;
+    }
+
+    private int subsetMinLevel(GridSubsetInfo gridSubset) {
+        return Optional.ofNullable(gridSubset.getMinCachedZoomLevel()).orElse(0);
+    }
+
+    private int subsetMaxLevel(GridSubsetInfo gridSubset) {
+        return Optional.ofNullable(gridSubset.getMaxCachedZoomLevel())
+                .orElse(gridSubset.getMaxZoomLevel());
     }
 }

@@ -4,8 +4,11 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -13,7 +16,11 @@ import java.util.stream.Stream;
 /**
  * @since 1.0
  */
-public @Value class TileRange3D implements Comparable<TileRange3D> {
+@Value
+@Builder
+@AllArgsConstructor
+@Jacksonized
+public class TileRange3D implements Comparable<TileRange3D> {
 
     private int zoomLevel;
 

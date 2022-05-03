@@ -4,15 +4,22 @@
  */
 package org.gwc.tiling.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
+import lombok.extern.jackson.Jacksonized;
 
 import java.time.Instant;
 
 /**
  * @since 1.0
  */
-public @Value class CacheJobRequest {
+@Value
+@Builder
+@Jacksonized
+@AllArgsConstructor
+public class CacheJobRequest {
 
     public static enum Action {
         SEED,

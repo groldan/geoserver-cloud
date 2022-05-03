@@ -2,7 +2,7 @@
  * (c) 2022 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.gwc.tiling.integration;
+package org.gwc.tiling.integration.local;
 
 import lombok.NonNull;
 
@@ -37,9 +37,11 @@ import javax.servlet.http.HttpServletResponse;
 public class GeoServerTileLayerSeeder extends TileLayerSeeder {
 
     private StorageBroker storageBroker;
+    private GeoServerTileLayer geoserverTileLayer;
 
     public GeoServerTileLayerSeeder(GeoServerTileLayer layer) {
-        super(layer);
+        super(new TileLayerInfoAdapter(layer));
+        this.geoserverTileLayer = layer;
     }
 
     @Override
@@ -111,7 +113,7 @@ public class GeoServerTileLayerSeeder extends TileLayerSeeder {
     private void seed(ConveyorTile tile) {
         final boolean tryCache = false;
         try {
-            this.layer.seedTile(tile, tryCache);
+            this.geoserverTileLayer.seedTile(tile, tryCache);
         } catch (GeoWebCacheException | IOException e) {
             throw new IllegalStateException(e);
         }
@@ -157,7 +159,7 @@ public class GeoServerTileLayerSeeder extends TileLayerSeeder {
     }
 
     protected TileObject createTileProto(CacheIdentifier cacheId) {
-        String layerName = layer.getName();
+        String layerName = getLayer().getName();
         long[] xyz = new long[3];
         String gridsetId = cacheId.getGridsetId();
         String format = cacheId.getFormat();
@@ -197,10 +199,12 @@ public class GeoServerTileLayerSeeder extends TileLayerSeeder {
         } catch (MimeException e) {
             throw new IllegalArgumentException(e);
         }
-        List<MimeType> mimeTypes = layer.getMimeTypes();
+        List<MimeType> mimeTypes = geoserverTileLayer.getMimeTypes();
         if (!mimeTypes.contains(expected)) {
             throw new IllegalArgumentException(
-                    format + " is not a supported format for layer " + layer.getName());
+                    format
+                            + " is not a supported format for layer "
+                            + geoserverTileLayer.getName());
         }
         return expected;
     }
