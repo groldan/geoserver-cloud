@@ -6,31 +6,25 @@ package org.geoserver.cloud.autoconfigure.gwc.service;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.geoserver.cloud.autoconfigure.gwc.GeoWebCacheConfigurationProperties;
-import org.geoserver.cloud.config.factory.FilteringXmlBeanDefinitionReader;
-import org.geowebcache.service.wmts.WMTSService;
-import org.gwc.web.wmts.WMTSController;
+import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
+import org.geoserver.cloud.gwc.config.services.WebMapTileServiceConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Import;
 
 import javax.annotation.PostConstruct;
 
 /**
  * @since 1.0
  */
-@Configuration
-@ConditionalOnClass(WMTSService.class)
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(
         name = GeoWebCacheConfigurationProperties.SERVICE_WMTS_ENABLED,
         havingValue = "true",
         matchIfMissing = false)
-@ComponentScan(basePackageClasses = WMTSController.class)
-@ImportResource(
-        reader = FilteringXmlBeanDefinitionReader.class,
-        locations = "jar:gs-gwc-[0-9]+.*!/geowebcache-wmtsservice-context.xml")
+@ConditionalOnClass(WebMapTileServiceConfiguration.class)
+@Import(WebMapTileServiceConfiguration.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.gwc.service")
 public class WebMapTileServiceAutoConfiguration {
 

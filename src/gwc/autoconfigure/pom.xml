@@ -15,6 +15,15 @@
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gwc-cloud-backends</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gwc-cloud-bus-integration</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <!-- if available, gwc API services will engage (e.g. tms, wmts, rest, etc) -->
       <artifactId>gwc-cloud-services</artifactId>
       <optional>true</optional>
     </dependency>

@@ -20,7 +20,6 @@ import static org.mockito.Mockito.verify;
 import org.geoserver.cloud.gwc.event.BlobStoreEvent;
 import org.geoserver.cloud.gwc.event.GeoWebCacheEvent;
 import org.geoserver.cloud.gwc.event.GridsetEvent;
-import org.geowebcache.azure.AzureBlobStoreInfo;
 import org.geowebcache.config.BlobStoreConfigurationListener;
 import org.geowebcache.config.BlobStoreInfo;
 import org.geowebcache.config.ConfigurationResourceProvider;
@@ -307,54 +306,6 @@ class CloudGwcXmlConfigurationTest {
         bsi.setDefault(!bsi.isDefault());
         bsi.setEnabled(!bsi.isEnabled());
         bsi.setBaseDirectory("/tmp/newdir");
-
-        remote.modifyBlobStore(bsi);
-        verify(remoteListener).handleModifyBlobStore(eq(bsi));
-
-        final Object unknownSource = new Object();
-        BlobStoreEvent event = new BlobStoreEvent(unknownSource);
-        event.setBlobStoreId(bsi.getName());
-        event.setEventType(MODIFIED);
-
-        local.onBlobStoreEvent(event);
-        BlobStoreInfo actual = local.getBlobStore(bsi.getName()).orElse(null);
-        assertEquals(bsi, actual);
-        verify(localListener).handleModifyBlobStore(eq(bsi));
-    }
-
-    @Test
-    void testOnBlobStoreEvent_Modified_AzureBlobStore() throws Exception {
-        final CloudGwcXmlConfiguration local = this.config;
-        final CloudGwcXmlConfiguration remote = createStubConfig();
-        BlobStoreConfigurationListener localListener = mock(BlobStoreConfigurationListener.class);
-        BlobStoreConfigurationListener remoteListener = mock(BlobStoreConfigurationListener.class);
-        local.addBlobStoreListener(localListener);
-        remote.addBlobStoreListener(remoteListener);
-
-        AzureBlobStoreInfo bsi = new AzureBlobStoreInfo();
-        bsi.setAccountKey("fake-key");
-        bsi.setAccountName("fake-name");
-        bsi.setContainer("fake-container");
-        bsi.setName("fake-azure-store");
-        bsi.setPrefix("/gwc/fake");
-        bsi.setServiceURL("http://fake");
-
-        remote.addBlobStore(bsi);
-
-        local.deinitialize();
-        local.afterPropertiesSet();
-
-        assertTrue(remote.getBlobStore(bsi.getName()).isPresent());
-        assertTrue(local.getBlobStore(bsi.getName()).isPresent());
-
-        bsi.setDefault(!bsi.isDefault());
-        bsi.setEnabled(!bsi.isEnabled());
-        bsi.setAccountKey("fake-key-modified");
-        bsi.setAccountName("fake-name-modified");
-        bsi.setContainer("fake-container-modified");
-        bsi.setName("fake-azure-store-modified");
-        bsi.setPrefix("/gwc/fake/modified");
-        bsi.setServiceURL("http://fake/modified");
 
         remote.modifyBlobStore(bsi);
         verify(remoteListener).handleModifyBlobStore(eq(bsi));

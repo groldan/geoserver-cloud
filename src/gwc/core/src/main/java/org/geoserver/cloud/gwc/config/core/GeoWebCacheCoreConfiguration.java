@@ -2,15 +2,12 @@
  * (c) 2022 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.cloud.autoconfigure.gwc.core;
+package org.geoserver.cloud.gwc.config.core;
 
 import static org.geowebcache.storage.DefaultStorageFinder.GWC_CACHE_DIR;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
-import org.geoserver.cloud.autoconfigure.gwc.GeoWebCacheConfigurationProperties;
-import org.geoserver.cloud.autoconfigure.gwc.integration.SeedingWMSAutoConfiguration;
 import org.geoserver.cloud.config.factory.FilteringXmlBeanDefinitionReader;
 import org.geoserver.cloud.gwc.repository.CloudDefaultStorageFinder;
 import org.geoserver.cloud.gwc.repository.CloudGwcXmlConfiguration;
@@ -28,11 +25,10 @@ import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -43,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -56,20 +51,14 @@ import javax.servlet.http.HttpServletRequestWrapper;
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = true)
-@ConditionalOnGeoWebCacheEnabled
-@Import(DiskQuotaAutoConfiguration.class)
-@AutoConfigureAfter(SeedingWMSAutoConfiguration.class)
+@EnableConfigurationProperties(GeoWebCacheConfigurationProperties.class)
 @ImportResource(
         reader = FilteringXmlBeanDefinitionReader.class, //
         locations = {
             "jar:gs-gwc-[0-9]+.*!/geowebcache-core-context.xml#name=^(?!gwcXmlConfig|gwcDefaultStorageFinder|gwcGeoServervConfigPersister|metastoreRemover).*$"
         })
-@Slf4j(topic = "org.geoserver.cloud.autoconfigure.gwc.core")
-public class GwcCoreAutoConfiguration {
-
-    public @PostConstruct void log() {
-        log.info("GeoWebCache core integration enabled");
-    }
+@Slf4j(topic = "org.geoserver.cloud.gwc.config.core")
+public class GeoWebCacheCoreConfiguration {
 
     @Bean
     SetRequestPathInfoFilter setRequestPathInfoFilter() {

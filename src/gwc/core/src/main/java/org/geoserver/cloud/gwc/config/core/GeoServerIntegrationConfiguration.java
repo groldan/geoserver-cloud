@@ -4,7 +4,8 @@
  */
 package org.geoserver.cloud.gwc.config.core;
 
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+
 import org.geoserver.catalog.Catalog;
 import org.geoserver.cloud.config.factory.FilteringXmlBeanDefinitionReader;
 import org.geoserver.cloud.gwc.repository.CachingTileLayerCatalog;
@@ -21,7 +22,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
-import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.PostConstruct;
 
 /**
  * @since 1.0

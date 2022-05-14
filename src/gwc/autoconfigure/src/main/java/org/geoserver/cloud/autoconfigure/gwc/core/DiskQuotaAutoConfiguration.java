@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * 
  * @see DiskQuotaConfiguration
  * @see DisquotaRestConfiguration
  * @see ConditionalOnDiskQuotaEnabled
@@ -21,7 +20,7 @@ import org.springframework.context.annotation.Import;
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
-@Import(DisquotaRestAutoConfiguration.class)
+@Import({DiskQuotaConfiguration.class, DisquotaRestAutoConfiguration.class})
 public class DiskQuotaAutoConfiguration {
 
     /**
@@ -32,6 +31,5 @@ public class DiskQuotaAutoConfiguration {
     @ConditionalOnDiskQuotaEnabled
     @ConditionalOnGeoWebCacheRestConfigEnabled
     @Import(DisquotaRestConfiguration.class)
-    static class DisquotaRestAutoConfiguration {
-    }
+    static class DisquotaRestAutoConfiguration {}
 }

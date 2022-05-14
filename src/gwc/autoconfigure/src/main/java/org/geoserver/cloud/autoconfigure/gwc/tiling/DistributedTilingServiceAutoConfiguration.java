@@ -10,6 +10,7 @@ import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
 import org.gwc.tiling.integration.cluster.ClusteringGeoWebCacheJobsConfiguration;
 import org.gwc.tiling.integration.cluster.bus.SpringCloudBusGwcJobsIntegrationConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.cloud.bus.ConditionalOnBusEnabled;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -21,6 +22,7 @@ import javax.annotation.PostConstruct;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnGeoWebCacheEnabled
+@ConditionalOnClass(ClusteringGeoWebCacheJobsConfiguration.class)
 @ConditionalOnBusEnabled
 @AutoConfigureAfter(TilingServiceAutoConfiguration.class)
 @Import({

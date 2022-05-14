@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc;
 
+import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
 import org.geowebcache.diskquota.DiskQuotaConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 
 /**
- *
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)

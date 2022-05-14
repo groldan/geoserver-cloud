@@ -7,6 +7,7 @@ package org.geoserver.cloud.autoconfigure.gwc.blobstore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.geoserver.cloud.autoconfigure.gwc.GeoWebCacheContextRunner;
+import org.geoserver.cloud.gwc.config.blobstore.S3BlobstoreConfiguration;
 import org.geoserver.gwc.web.GWCSettingsPage;
 import org.geoserver.gwc.web.blob.S3BlobStoreType;
 import org.geowebcache.s3.S3BlobStoreConfigProvider;
@@ -20,7 +21,7 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import java.io.File;
 
 /**
- * {@link S3BlobstoreAutoConfiguration} tests
+ * {@link S3BlobstoreConfiguration} tests
  *
  * @since 1.0
  */
@@ -34,8 +35,7 @@ class S3BlobstoreAutoConfigurationTest {
     void setUp() throws Exception {
         runner =
                 GeoWebCacheContextRunner.newMinimalGeoWebCacheContextRunner(tmpDir)
-                        .withConfiguration(
-                                AutoConfigurations.of(S3BlobstoreAutoConfiguration.class));
+                        .withConfiguration(AutoConfigurations.of(S3BlobstoreConfiguration.class));
     }
 
     public @Test void disabledByDefault() {

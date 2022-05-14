@@ -7,6 +7,7 @@ package org.geoserver.cloud.autoconfigure.gwc.blobstore;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.geoserver.cloud.autoconfigure.gwc.GeoWebCacheContextRunner;
+import org.geoserver.cloud.gwc.config.blobstore.AzureBlobstoreConfiguration;
 import org.geoserver.gwc.web.GWCSettingsPage;
 import org.geoserver.gwc.web.blob.AzureBlobStoreType;
 import org.geowebcache.azure.AzureBlobStoreConfigProvider;
@@ -20,7 +21,7 @@ import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import java.io.File;
 
 /**
- * {@link AzureBlobstoreAutoConfiguration} tests
+ * {@link AzureBlobstoreConfiguration} tests
  *
  * @since 1.0
  */
@@ -35,7 +36,7 @@ class AzureBlobstoreAutoConfigurationTest {
         runner =
                 GeoWebCacheContextRunner.newMinimalGeoWebCacheContextRunner(tmpDir)
                         .withConfiguration(
-                                AutoConfigurations.of(AzureBlobstoreAutoConfiguration.class));
+                                AutoConfigurations.of(AzureBlobstoreConfiguration.class));
     }
 
     public @Test void disabledByDefault() {

@@ -4,6 +4,8 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc;
 
+import org.geoserver.cloud.gwc.config.blobstore.S3BlobstoreGsWebUIConfiguration;
+import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
 import org.geowebcache.s3.S3BlobStoreConfigProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,7 +31,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @ConditionalOnGeoWebCacheEnabled
-@ConditionalOnClass(S3BlobStoreConfigProvider.class)
+@ConditionalOnClass({S3BlobstoreGsWebUIConfiguration.class, S3BlobStoreConfigProvider.class})
 @ConditionalOnProperty(
         name = GeoWebCacheConfigurationProperties.BLOBSTORE_S3_ENABLED,
         havingValue = "true",

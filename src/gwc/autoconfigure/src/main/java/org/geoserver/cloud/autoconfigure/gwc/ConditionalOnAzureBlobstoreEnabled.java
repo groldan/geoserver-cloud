@@ -4,6 +4,8 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc;
 
+import org.geoserver.cloud.gwc.config.blobstore.AzureBlobstoreConfiguration;
+import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
 import org.geowebcache.azure.AzureBlobStoreConfigProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -29,7 +31,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @ConditionalOnGeoWebCacheEnabled
-@ConditionalOnClass(AzureBlobStoreConfigProvider.class)
+@ConditionalOnClass({AzureBlobstoreConfiguration.class, AzureBlobStoreConfigProvider.class})
 @ConditionalOnProperty(
         name = GeoWebCacheConfigurationProperties.BLOBSTORE_AZURE_ENABLED,
         havingValue = "true",

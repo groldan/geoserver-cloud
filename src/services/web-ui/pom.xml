@@ -134,43 +134,10 @@
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
-      <artifactId>gs-cloud-starter-gwc</artifactId>
-      <exclusions>
-        <exclusion>
-          <artifactId>gwc-georss</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-gmaps</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-kml</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-rest</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-tms</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-ve</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-wms</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>gwc-wmts</artifactId>
-          <groupId>org.geowebcache</groupId>
-        </exclusion>
-      </exclusions>
+      <artifactId>gwc-cloud-spring-boot-starter</artifactId>
     </dependency>
     <dependency>
+      <!-- add gs-web-gwc, optional in gwc-cloud-spring-boot-starter -->
       <groupId>org.geoserver.web</groupId>
       <artifactId>gs-web-gwc</artifactId>
     </dependency>

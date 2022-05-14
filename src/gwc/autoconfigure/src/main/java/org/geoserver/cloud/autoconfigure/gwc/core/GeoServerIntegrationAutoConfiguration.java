@@ -4,32 +4,32 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
 import org.geoserver.cloud.gwc.config.core.GeoServerIntegrationConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import lombok.extern.slf4j.Slf4j;
+
+import javax.annotation.PostConstruct;
 
 /**
  * {@link EnableAutoConfiguration Auto-Configuration} to integrated GeoServer-specific GWC
  * extensions, for example, to being able of configuring tile layers out of GeoServer Layers.
- * 
- * 
+ *
  * @see GeoServerIntegrationConfiguration
  * @see ConditionalOnGeoWebCacheEnabled
- * 
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnGeoWebCacheEnabled
-@AutoConfigureAfter(GwcCoreAutoConfiguration.class)
+@AutoConfigureAfter(GeoWebCacheAutoConfiguration.class)
 @Import(GeoServerIntegrationConfiguration.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.gwc.core")
 public class GeoServerIntegrationAutoConfiguration {
-    
+
     @PostConstruct
     public void log() {
         log.info("GeoWebCache core GeoServer integration enabled");

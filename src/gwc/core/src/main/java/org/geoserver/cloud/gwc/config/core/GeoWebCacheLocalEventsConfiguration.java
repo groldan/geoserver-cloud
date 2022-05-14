@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
-public class LocalEventsConfiguration {
+public class GeoWebCacheLocalEventsConfiguration {
 
     public @Bean TileLayerEventPublisher tileLayerEventPublisher() {
         return new TileLayerEventPublisher();
