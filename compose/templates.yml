@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  geoserver:
+    image:
+    user: ${GS_USER} # set the userid:groupid the container runs as
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES}"
+      #SPRING_CONFIG_ADDITIONAL_LOCATION: /etc/gscloud/values.yml
+      JAVA_OPTS: "${JAVA_OPTS}" 
+    networks:
+      - gs-cloud-network
+    depends_on:
+      - rabbitmq
+      - discovery
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '${DEFAULT_CPUS}'
+          memory: '${DEFAULT_MEMORY}'

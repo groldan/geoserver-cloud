@@ -1,0 +1,118 @@
+version: "3.8"
+
+volumes:
+  jdbcconfigdb_data: # volume for postgresql data, used to store the geoserver config through jdbcconfig
+
+#
+# Configures all geoserver services to use the postgresql database server with jdbcconfig as catalog backend.
+# Run with `docker-compose --compatibility -f docker-compose.yml -f docker-compose-jdbcconfig.yml up -d`
+#
+
+services:
+  #catalog:
+  #  command: echo "catalog-service disabled."
+  jdbcconfigdb:
+    # be sure geoserver.backend.jdbcconfig.initdb is set to true in application.yml at least for the first app run
+    image: postgres:15
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      POSTGRES_DB: "${JDBCCONFIG_DBNAME}"
+      POSTGRES_USER: "${JDBCCONFIG_USERNAME}"
+      POSTGRES_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    ports:
+      - 54321:5432
+    networks:
+      - gs-cloud-network
+    volumes:
+      - jdbcconfigdb_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  wfs:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  wms:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  wcs:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  rest:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  webui:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  gwc:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb
+
+  wps:
+    env_file:
+      - .env
+      - .env_jdbcconfig
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},jdbcconfig"
+      JDBCCONFIG_URL: "${JDBCCONFIG_URL}"
+      JDBCCONFIG_USERNAME: "${JDBCCONFIG_USERNAME}"
+      JDBCCONFIG_PASSWORD: "${JDBCCONFIG_PASSWORD}"
+    depends_on:
+      - jdbcconfigdb

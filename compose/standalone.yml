@@ -1,0 +1,73 @@
+version: "3.8"
+
+volumes:
+  config:
+    driver_opts:
+      type: none
+      o: bind
+      device: $PWD/../config
+  
+services:
+  discovery:
+    entrypoint: echo "discovery-service disabled."
+
+  config:
+    entrypoint: echo "config-service disabled."
+
+  admin:
+    entrypoint: echo "admin-service disabled for standalone mode, requires discovery-service."
+
+  gateway:
+    environment:
+      SPRING_PROFILES_ACTIVE: "standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  #catalog:
+  #  environment:
+  #    SPRING_PROFILES_ACTIVE: "standalone,datadir"
+  #  volumes:
+  #    - config:/etc/gscloud
+
+  wfs:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  wms:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  wcs:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  rest:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  webui:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  gwc:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+
+  wps:
+    environment:
+      SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},standalone"
+    volumes:
+      - config:/etc/gscloud
+      

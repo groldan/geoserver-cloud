@@ -1,0 +1,194 @@
+# This is the main docker compose file for development purposes.
+# You'll need to run it with one of the backend-*.yml sidecar files to select
+# which catalog/config storage backend to use.
+# Common service config will be loaded from templates.yml
+# Common environment config will be taken from the .env file
+version: "3.8"
+
+volumes:
+  rabbitmq_data: # volume for rabbitmq data, so it doesn't create an anonymous one on each container
+  postgis_data:
+  geowebcache_data:
+    
+networks:
+  gs-cloud-network:
+#    driver: bridge
+        
+services:
+  postgis:
+    image: postgis/postgis:latest
+    environment:
+      POSTGRES_DB: postgis
+      POSTGRES_USER: postgis
+      POSTGRES_PASSWORD: postgis
+      POSTGIS_GDAL_ENABLED_DRIVERS: ENABLE_ALL
+    networks:
+      - gs-cloud-network
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    user: ${GS_USER}
+    restart: always
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - gs-cloud-network
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  # Eureka service discovery. This is a Discovery First Bootstrap configuration.
+  # The discovery service is the only fixed entry point.
+  # Browse to http://localhost:8761 to check all services are registered.
+  # Run docker-compose -f docker-compose.yml -f docker-compose-discovery-ha.yml to run extra discovery service instances for HA
+  discovery:
+    image: geoservercloud/geoserver-cloud-discovery:${TAG}
+    user: ${GS_USER}
+    environment:
+      JAVA_OPTS: "${JAVA_OPTS}"
+    ports:
+      - 8761:8761 # for development, so services can be run from localhost and find the discovery service running on docker
+    networks:
+      - gs-cloud-network
+    depends_on:
+      - config
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
+  # Spring Cloud Config service, provides centralized configuration to all
+  # microservices. Being a Discovery First Bootstrap configuration, it'll
+  # register itself with the Eureka discovery service and can be scaled
+  config:
+    image: geoservercloud/geoserver-cloud-config:${TAG}
+    user: ${GS_USER}
+    environment:
+      JAVA_OPTS: "${JAVA_OPTS}"
+      # Either 'git' or 'native'. Use the default sample git repository to download the services configuration from
+      # If 'git', BEWARE config server will look for a branch called "master", and github changed the default branch name to "main"
+      # For more information, see https://cloud.spring.io/spring-cloud-config/multi/multi__spring_cloud_config_server.html#_git_backend
+      SPRING_PROFILES_ACTIVE: native
+      # 'git' profile config
+      CONFIG_GIT_URI: https://github.com/geoserver/geoserver-cloud-config
+      CONFIG_GIT_BASEDIR: /tmp/git_config
+      # 'native' profile config
+      CONFIG_NATIVE_PATH: /tmp/config
+    networks:
+      - gs-cloud-network
+    volumes:
+      - ../config:/tmp/config
+    ports:
+      - 8888:8080
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+
+  admin:
+    image: geoservercloud/geoserver-cloud-admin-server:${TAG}
+    user: ${GS_USER}
+    depends_on:
+      - discovery
+    ports:
+      - 9091:8080
+    networks:
+      - gs-cloud-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 512M
+    
+  # Application facade, provides a single entry point routing to all
+  # microservices (e.g. http://localhost:9090/geoserver/wms, http://localhost:9090/geoserver/wfs, etc)
+  gateway:
+    image: geoservercloud/geoserver-cloud-gateway:${TAG}
+    user: ${GS_USER}
+    depends_on:
+      - discovery
+    environment:
+      JAVA_OPTS: "${JAVA_OPTS}"
+      SPRING_PROFILES_ACTIVE: dev #exposes the catalog and config API at /api/v1/**
+      RETRY_MAX_ATTEMPTS: 100
+      # eat our own dogfood and set a base path
+      GEOSERVER_BASE_PATH: ${GATEWAY_BASE_PATH}
+    ports:
+      - 9090:8080
+    networks:
+      - gs-cloud-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 1G
+
+  wfs:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-wfs:${TAG}
+
+  wms:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-wms:${TAG}
+    volumes:
+      - geowebcache_data:/data/geowebcache
+
+  gwc:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-gwc:${TAG}
+    volumes:
+      - geowebcache_data:/data/geowebcache
+
+  webui:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-webui:${TAG}
+    volumes:
+      - geowebcache_data:/data/geowebcache
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  rest:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-rest:${TAG}
+
+  wcs:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-wcs:${TAG}
+
+  wps:
+    extends:
+      file: templates.yml
+      service: geoserver
+    image: geoservercloud/geoserver-cloud-wps:${TAG}
+
+   
