@@ -8,11 +8,11 @@ version: "3.8"
 # To set it to a different path, change the mount point and add the following env variable: GEOSERVER_DATA_DIR: </path/to/data_directory>
 
 volumes:
-  test_shared_data_directory:
+  data_directory:
     driver_opts:
       type: none
       o: bind
-      device: $PWD/datadir
+      device: $PWD/backend-datadir
   
 services:
   #catalog:
@@ -22,40 +22,40 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   wms:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   wcs:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   wps:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   rest:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   webui:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
 
   gwc:
     environment:
       SPRING_PROFILES_ACTIVE: "${DEFAULT_PROFILES},datadir"
     volumes:
-      - test_shared_data_directory:/opt/app/data_directory
+      - data_directory:/opt/app/data_directory
