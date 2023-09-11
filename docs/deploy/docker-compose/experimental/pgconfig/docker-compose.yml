@@ -1,0 +1,178 @@
+version: "3.8"
+
+volumes:
+  # volume for postgresql data, used to store the geoserver config through pgsqlconfig backend
+  pgconfig_data:
+  # volume for sample postgis data
+  postgis_data:
+  gwc_data:
+  # volume for application externalized configuration yaml files
+  spring-config:
+    driver_opts:
+      type: none
+      o: bind
+      device: $PWD/config
+  
+services:
+  pgconfig:
+    image: postgres:15
+    shm_size: 2g
+    environment:
+      POSTGRES_DB: pgconfig
+      POSTGRES_USER: pgconfig
+      POSTGRES_PASSWORD: pgconfig
+    volumes:
+      - pgconfig_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+  postgis:
+    image: postgis/postgis:latest
+    environment:
+      POSTGRES_DB: postgis
+      POSTGRES_USER: postgis
+      POSTGRES_PASSWORD: postgis
+      POSTGIS_GDAL_ENABLED_DRIVERS: ENABLE_ALL
+    volumes:
+      - postgis_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    user: 1000:1000
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+
+  gateway:
+    image: geoservercloud/geoserver-cloud-gateway:1.4-SNAPSHOT
+    user: 1000:1000
+    environment:
+      SPRING_PROFILES_ACTIVE: "standalone"
+    ports:
+      - 9090:8080
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 1G
+
+  wms:
+    extends:
+      service: geoserver_template
+    image: geoservercloud/geoserver-cloud-wms:1.4-SNAPSHOT
+    volumes:
+      - gwc_data:/data/geowebcache
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+    deploy:
+      replicas: 1
+
+  wfs:
+    image: geoservercloud/geoserver-cloud-wfs:1.4-SNAPSHOT
+    user: 1000:1000 # set the userid:groupid the container runs as
+    environment:
+      SPRING_PROFILES_ACTIVE: "standalone,pgconfig"
+      JAVA_OPTS: -Ddebug 
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+
+  wcs:
+    extends:
+      service: geoserver_template
+    image: geoservercloud/geoserver-cloud-wcs:1.4-SNAPSHOT
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+    deploy:
+      replicas: 1
+
+  wps:
+    extends:
+      service: geoserver_template
+    image: geoservercloud/geoserver-cloud-wps:1.4-SNAPSHOT
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+    deploy:
+      replicas: 1
+
+  gwc:
+    extends:
+      service: geoserver_template
+    image: geoservercloud/geoserver-cloud-gwc:1.4-SNAPSHOT
+    volumes:
+      - gwc_data:/data/geowebcache
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+    deploy:
+      replicas: 1
+
+  rest:
+    extends:
+      service: geoserver_template
+    image: geoservercloud/geoserver-cloud-rest:1.4-SNAPSHOT
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+    deploy:
+      replicas: 1
+
+  webui:
+    image: geoservercloud/geoserver-cloud-webui:1.4-SNAPSHOT
+    user: 1000:1000 # set the userid:groupid the container runs as
+    environment:
+      SPRING_PROFILES_ACTIVE: "standalone,pgconfig"
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+    volumes:
+      - gwc_data:/data/geowebcache
+    depends_on:
+      - rabbitmq
+      - postgis
+      - pgconfig
+
+  geoserver_template:
+    image: geoservercloud/geoserver-cloud-webui:1.4-SNAPSHOT
+    user: 1000:1000 # set the userid:groupid the container runs as
+    environment:
+      SPRING_PROFILES_ACTIVE: "standalone,pgconfig"
+      SPRING_CONFIG_ADDITIONAL-LOCATION: "file:/etc/gscloud/geoserver.yml"
+      JAVA_OPTS: -Dspring.profiles.additional-location=file:/etc/gscloud/geoserver.yml -XshowSettings:system 
+    deploy:
+      mode: replicated
+      replicas: 0
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+      

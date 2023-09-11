@@ -34,6 +34,14 @@ services:
           cpus: '2.0'
           memory: 1G
 
+  gdal:
+    image: osgeo/gdal:latest
+    volumes:
+      - ./bakend-pgconfig:/sample_data
+    deploy:
+      mode: replicated
+      replicas: 0
+
   rabbitmq:
     image: rabbitmq:3.11-management
     user: ${GS_USER}
