@@ -15,8 +15,18 @@ import java.util.Map;
 
 @SpringBootTest(classes = WfsApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 abstract class WfsApplicationTest {
+    private TestRestTemplate restTemplate = new TestRestTemplate("admin", "geoserver");
 
-    protected TestRestTemplate restTemplate = new TestRestTemplate("admin", "geoserver");
+    static @TempDir Path tmpdir;
+    static Path datadir;
+    private TestRestTemplate restTemplate = new TestRestTemplate("admin", "geoserver");
+
+    @DynamicPropertySource
+    static void setUpDataDir(DynamicPropertyRegistry registry) throws IOException {
+        datadir = Files.createDirectory(tmpdir.resolve("datadir"));
+        registry.add("geoserver.backend.data-directory.location", datadir::toAbsolutePath);
+    }
+
 
     @Test
     void owsGetCapabilitiesSmokeTest(@LocalServerPort int servicePort) {
