@@ -19,7 +19,9 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
+import org.geoserver.catalog.impl.LayerGroupStyle;
 import org.geoserver.catalog.impl.ResolvingProxy;
+import org.geoserver.catalog.impl.StyleInfoImpl;
 import org.geoserver.catalog.plugin.forwarding.ResolvingCatalogFacadeDecorator;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.SettingsInfo;
@@ -27,6 +29,7 @@ import org.geoserver.config.SettingsInfo;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -192,23 +195,69 @@ public class ResolvingProxyResolver<T extends Info> implements UnaryOperator<T> 
     }
 
     protected LayerGroupInfo resolveInternal(LayerGroupInfo lg) {
-        for (int i = 0; i < lg.getLayers().size(); i++) {
-            PublishedInfo l = lg.getLayers().get(i);
-            if (l != null) {
-                lg.getLayers().set(i, resolve(l));
-            }
+        resolveLayerGroupLayers(lg.getLayers());
+        resolveLayerGroupStyles(lg.getLayers(), lg.getStyles());
+        // now resolves layers and styles defined in layer group styles
+        for (LayerGroupStyle groupStyle : lg.getLayerGroupStyles()) {
+            resolveLayerGroupLayers(groupStyle.getLayers());
+            resolveLayerGroupStyles(groupStyle.getLayers(), groupStyle.getStyles());
         }
 
-        for (int i = 0; i < lg.getStyles().size(); i++) {
-            StyleInfo s = lg.getStyles().get(i);
-            if (s != null) {
-                lg.getStyles().set(i, resolve(s));
-            }
-        }
         lg.setWorkspace(resolve(lg.getWorkspace()));
         lg.setRootLayer(resolve(lg.getRootLayer()));
         lg.setRootLayerStyle(resolve(lg.getRootLayerStyle()));
         return lg;
+    }
+
+    private void resolveLayerGroupLayers(List<PublishedInfo> layers) {
+        for (int i = 0; i < layers.size(); i++) {
+            PublishedInfo l = layers.get(i);
+
+            if (l != null) {
+                PublishedInfo resolved;
+                if (l instanceof LayerGroupInfo || l instanceof LayerInfo) {
+                    resolved = resolve(l);
+                    // special case to handle catalog loading, when nested publishibles might not be
+                    // loaded.
+                    if (resolved == null) {
+                        resolved = l;
+                    }
+                } else {
+                    // Special case for null layer (style group)
+                    resolved = ResolvingProxy.resolve(catalog, l);
+                }
+                layers.set(i, resolved);
+            }
+        }
+    }
+
+    private void resolveLayerGroupStyles(
+            List<PublishedInfo> assignedLayers, List<StyleInfo> styles) {
+        for (int i = 0; i < styles.size(); i++) {
+            StyleInfo style = styles.get(i);
+            if (null != style) {
+                PublishedInfo assignedLayer = assignedLayers.get(i);
+                StyleInfo resolved = resolveLayerGroupStyle(style, assignedLayer);
+                styles.set(i, resolved);
+            }
+        }
+    }
+
+    private StyleInfo resolveLayerGroupStyle(StyleInfo style, PublishedInfo assignedLayer) {
+        StyleInfo resolved = null;
+        if (assignedLayer instanceof LayerGroupInfo) {
+            // special case we might have a StyleInfo representing
+            // only the name of a LayerGroupStyle thus not present in Catalog.
+            // We take the ref and create a new object
+            // without searching in catalog.
+            String ref = ResolvingProxy.getRef(style);
+            if (ref != null) {
+                StyleInfo styleInfo = new StyleInfoImpl(catalog);
+                styleInfo.setName(ref);
+                resolved = styleInfo;
+            }
+        }
+        return (resolved == null) ? resolve(style) : resolved;
     }
 
     protected StyleInfo resolveInternal(StyleInfo style) {

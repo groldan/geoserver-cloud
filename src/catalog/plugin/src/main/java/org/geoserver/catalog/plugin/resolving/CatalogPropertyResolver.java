@@ -54,7 +54,7 @@ public class CatalogPropertyResolver<T extends Info> implements UnaryOperator<T>
     }
 
     private <I> I resolve(I i) {
-        i = null == i ? null : ModificationProxy.unwrap(i);
+        i = ModificationProxy.unwrap(i);
         if (i instanceof StoreInfo store) setCatalog(store);
         else if (i instanceof ResourceInfo resource) setCatalog(resource);
         else if (i instanceof StyleInfo style) setCatalog(style);
