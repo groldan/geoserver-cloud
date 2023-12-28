@@ -12,7 +12,7 @@ import org.geoserver.catalog.impl.ModificationProxy;
 import org.geoserver.catalog.impl.ProxyUtils;
 import org.geoserver.catalog.plugin.forwarding.ResolvingCatalogFacadeDecorator;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * {@link ResolvingCatalogFacadeDecorator#setObjectResolver resolving function} that returns the
@@ -23,11 +23,11 @@ import java.util.function.Function;
 @UtilityClass
 public class ModificationProxyDecorator {
 
-    public static Function<CatalogInfo, CatalogInfo> wrap() {
+    public static UnaryOperator<CatalogInfo> wrap() {
         return ModificationProxyDecorator::wrap;
     }
 
-    public static Function<CatalogInfo, CatalogInfo> unwrap() {
+    public static UnaryOperator<CatalogInfo> unwrap() {
         return ModificationProxyDecorator::unwrap;
     }
 
