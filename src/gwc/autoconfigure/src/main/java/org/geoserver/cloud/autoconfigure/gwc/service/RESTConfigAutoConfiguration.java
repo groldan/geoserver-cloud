@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.service;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheRestConfigEnabled;
@@ -13,8 +14,6 @@ import org.geoserver.cloud.gwc.config.services.RESTConfigConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Import;
-
-import javax.annotation.PostConstruct;
 
 /**
  * The original {@literal geowebcache-rest-context.xml}:

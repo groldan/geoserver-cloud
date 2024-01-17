@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.times;
 
+import jakarta.annotation.Nullable;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.CatalogTestData;
@@ -66,8 +67,6 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Date;
 import java.util.function.Function;
-
-import javax.annotation.Nullable;
 
 /**
  * Test {@link RemoteEventCacheEvictor} functionality when {@code

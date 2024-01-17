@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.config.catalog.backend.jdbcconfig;
 
+import jakarta.annotation.PostConstruct;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.cloud.config.catalog.backend.core.CoreBackendConfiguration;
 import org.geoserver.config.DefaultGeoServerLoader;
@@ -23,8 +24,6 @@ import org.geoserver.platform.resource.Resource.Lock;
 
 import java.io.IOException;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
 
 /**
  * {@link Catalog} and {@link GeoServer config} loader for the jdbcconfig backend, loads the

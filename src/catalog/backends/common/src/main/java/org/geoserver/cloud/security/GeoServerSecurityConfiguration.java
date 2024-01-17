@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.security;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.security.ConditionalOnGeoServerSecurityEnabled;
@@ -24,8 +25,6 @@ import org.springframework.context.annotation.ImportResource;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Loads geoserver security bean definitions from {@code

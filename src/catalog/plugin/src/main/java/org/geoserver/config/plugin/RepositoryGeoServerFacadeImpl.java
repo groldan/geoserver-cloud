@@ -6,6 +6,7 @@ package org.geoserver.config.plugin;
 
 import static java.util.Objects.requireNonNull;
 
+import jakarta.annotation.Nullable;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.MetadataMap;
 import org.geoserver.catalog.WorkspaceInfo;
@@ -33,8 +34,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.annotation.Nullable;
 
 /**
  * Default implementation of {@link GeoServerFacade} backed by a pluggable {@link ConfigRepository}

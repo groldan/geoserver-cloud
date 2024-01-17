@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
@@ -18,8 +19,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import javax.annotation.PostConstruct;
 
 /**
  * {@link EnableAutoConfiguration Auto configuration} to make sure a minimal {@link WebMapService}

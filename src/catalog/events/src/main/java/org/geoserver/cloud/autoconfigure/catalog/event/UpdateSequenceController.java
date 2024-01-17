@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.catalog.event;
 
+import jakarta.annotation.security.RolesAllowed;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +18,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.security.RolesAllowed;
 
 /**
  * @since 1.0

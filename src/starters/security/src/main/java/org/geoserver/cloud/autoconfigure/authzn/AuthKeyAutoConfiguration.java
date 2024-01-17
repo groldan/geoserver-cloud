@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.authzn;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.config.factory.FilteringXmlBeanDefinitionReader;
@@ -17,8 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @since 1.0

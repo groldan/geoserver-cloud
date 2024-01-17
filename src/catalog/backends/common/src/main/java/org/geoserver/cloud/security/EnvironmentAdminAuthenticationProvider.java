@@ -6,6 +6,7 @@ package org.geoserver.cloud.security;
 
 import static org.springframework.util.StringUtils.hasText;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.security.impl.GeoServerRole;
@@ -24,8 +25,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
-
-import javax.annotation.PostConstruct;
 
 /**
  * {@link AuthenticationProvider} that allows to set an administrator account (username and

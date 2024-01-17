@@ -6,7 +6,7 @@ package org.geoserver.cloud.event.catalog;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-
+import jakarta.annotation.Nullable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -22,8 +22,6 @@ import org.geoserver.cloud.event.info.InfoEvent;
 import org.springframework.core.style.ToStringCreator;
 
 import java.util.Objects;
-
-import javax.annotation.Nullable;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @JsonTypeName("DefaultDataStoreSet")

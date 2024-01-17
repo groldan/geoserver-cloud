@@ -4,6 +4,7 @@
  */
 package org.geoserver.catalog.plugin;
 
+import jakarta.annotation.Nullable;
 import org.geoserver.catalog.CatalogFacade;
 import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.LayerGroupInfo;
@@ -22,8 +23,6 @@ import org.geotools.api.filter.sort.SortBy;
 import java.io.Closeable;
 import java.util.Objects;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * {@link CatalogFacade} with additional methods

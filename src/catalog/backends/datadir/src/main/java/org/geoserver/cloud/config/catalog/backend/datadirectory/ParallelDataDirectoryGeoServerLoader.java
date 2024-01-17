@@ -10,6 +10,7 @@ import static org.geoserver.catalog.StyleInfo.DEFAULT_POINT;
 import static org.geoserver.catalog.StyleInfo.DEFAULT_POLYGON;
 import static org.geoserver.catalog.StyleInfo.DEFAULT_RASTER;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -38,8 +39,6 @@ import org.vfny.geoserver.util.DataStoreUtils;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Extends the parallel {@link org.geoserver.catalog.datadir.DataDirectoryGeoServerLoader} to

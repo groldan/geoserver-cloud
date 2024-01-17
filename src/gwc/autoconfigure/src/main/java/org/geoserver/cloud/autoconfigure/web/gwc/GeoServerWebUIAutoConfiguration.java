@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.web.gwc;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoServerWebUIEnabled;
@@ -15,8 +16,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Auto configuration to enabled GWC Wicket Web UI components.

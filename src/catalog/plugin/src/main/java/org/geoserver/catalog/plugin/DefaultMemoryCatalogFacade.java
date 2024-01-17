@@ -4,6 +4,7 @@
  */
 package org.geoserver.catalog.plugin;
 
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,8 +43,6 @@ import java.rmi.server.UID;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.function.Supplier;
-
-import javax.annotation.Nullable;
 
 /**
  * Default catalog facade implementation using in-memory {@link CatalogRepository repositories} to

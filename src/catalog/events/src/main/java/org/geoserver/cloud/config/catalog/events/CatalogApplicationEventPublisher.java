@@ -6,6 +6,8 @@ package org.geoserver.cloud.config.catalog.events;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -47,9 +49,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 
 /**
  * Adapts the listener pattern used by {@link Catalog#addListener Catalog} and {@link

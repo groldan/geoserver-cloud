@@ -8,7 +8,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Counter.Builder;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.BaseUnits;
-
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 
 import org.geoserver.catalog.CatalogException;
@@ -17,8 +17,6 @@ import org.geoserver.catalog.event.CatalogListener;
 import org.geoserver.catalog.event.CatalogModifyEvent;
 import org.geoserver.catalog.event.CatalogPostModifyEvent;
 import org.geoserver.catalog.event.CatalogRemoveEvent;
-
-import javax.annotation.Nullable;
 
 class MetricsCatalogListener implements CatalogListener {
 

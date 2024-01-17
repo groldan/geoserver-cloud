@@ -4,14 +4,13 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
 import org.geoserver.cloud.gwc.config.core.GeoWebCacheLocalEventsConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Import;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @see GeoWebCacheLocalEventsConfiguration

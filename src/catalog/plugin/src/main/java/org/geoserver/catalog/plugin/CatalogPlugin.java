@@ -6,6 +6,7 @@ package org.geoserver.catalog.plugin;
 
 import static java.util.Collections.unmodifiableList;
 
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 
 import org.geoserver.catalog.Catalog;
@@ -67,8 +68,6 @@ import java.util.function.UnaryOperator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import javax.annotation.Nullable;
 
 /**
  * Alternative to {@link org.geoserver.catalog.impl.CatalogImpl} to improve separation of concerns

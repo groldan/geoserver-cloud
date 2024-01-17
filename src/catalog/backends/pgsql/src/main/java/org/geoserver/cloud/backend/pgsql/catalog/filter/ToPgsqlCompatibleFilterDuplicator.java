@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.backend.pgsql.catalog.filter;
 
+import jakarta.annotation.Nullable;
 import org.geotools.api.filter.BinaryComparisonOperator;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.MultiValuedFilter.MatchAction;
@@ -24,8 +25,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-
-import javax.annotation.Nullable;
 
 /**
  * Duplicates a supported filter making it directly translatable to SQL taking care of subtleties

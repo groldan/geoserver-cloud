@@ -10,6 +10,7 @@ import static org.geoserver.catalog.StyleInfo.DEFAULT_POINT;
 import static org.geoserver.catalog.StyleInfo.DEFAULT_POLYGON;
 import static org.geoserver.catalog.StyleInfo.DEFAULT_RASTER;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,8 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @since 1.4

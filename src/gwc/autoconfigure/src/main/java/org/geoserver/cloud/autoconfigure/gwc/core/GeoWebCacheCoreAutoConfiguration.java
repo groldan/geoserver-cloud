@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
@@ -12,8 +13,6 @@ import org.geoserver.cloud.gwc.config.core.GeoWebCacheCoreConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import javax.annotation.PostConstruct;
 
 /**
  * This auto-configuration only integrates the minimal components to have gwc integrated with

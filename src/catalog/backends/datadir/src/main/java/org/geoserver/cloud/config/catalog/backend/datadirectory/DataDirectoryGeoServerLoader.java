@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.config.catalog.backend.datadirectory;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,8 +26,6 @@ import org.geoserver.platform.config.UpdateSequence;
 
 import java.io.IOException;
 import java.util.Set;
-
-import javax.annotation.PostConstruct;
 
 /**
  * {@link Catalog} and {@link GeoServer config} loader for the data-directory backend, loads the

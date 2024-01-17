@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.gwc.config.core;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.catalog.Catalog;
@@ -25,8 +26,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Optional;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @since 1.0

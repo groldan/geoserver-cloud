@@ -6,6 +6,7 @@ package org.geoserver.cloud.gwc.event;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import jakarta.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -14,8 +15,6 @@ import org.geoserver.gwc.layer.TileLayerCatalogListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
-
-import javax.annotation.PostConstruct;
 
 /**
  * Adapts the listener pattern used by {@link TileLayerCatalog#addListener} and {@link

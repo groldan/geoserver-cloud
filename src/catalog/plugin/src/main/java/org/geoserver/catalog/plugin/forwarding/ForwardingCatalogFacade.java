@@ -4,6 +4,7 @@
  */
 package org.geoserver.catalog.plugin.forwarding;
 
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 
 import org.geoserver.catalog.Catalog;
@@ -24,8 +25,6 @@ import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.sort.SortBy;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 /**
  * {@link CatalogFacade} which forwards all its method calls to another {@code CatalogFacade} aiding

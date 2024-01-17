@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gwc.blobstore;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnAzureBlobstoreEnabled;
@@ -16,8 +17,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @see ConditionalOnAzureBlobstoreEnabled

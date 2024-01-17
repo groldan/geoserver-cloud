@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.catalog.cache;
 
+import jakarta.annotation.Nullable;
 import lombok.NonNull;
 
 import org.geoserver.catalog.CatalogInfo;
@@ -17,8 +18,6 @@ import org.geoserver.config.SettingsInfo;
 import org.springframework.cache.CacheManager;
 
 import java.util.Optional;
-
-import javax.annotation.Nullable;
 
 /**
  * Extension of {@link GeoServerFacade} to signify some methods cache or evict {@link Info} objects.
