@@ -14,7 +14,6 @@ import org.geoserver.config.SettingsInfo;
 import org.geoserver.config.impl.ContactInfoImpl;
 import org.geoserver.config.impl.CoverageAccessInfoImpl;
 import org.geoserver.config.impl.GeoServerInfoImpl;
-import org.geoserver.config.impl.JAIEXTInfoImpl;
 import org.geoserver.config.impl.JAIInfoImpl;
 import org.geoserver.config.impl.LoggingInfoImpl;
 import org.geoserver.config.impl.SettingsInfoImpl;
@@ -41,8 +40,11 @@ public class ObjectFacotries {
         return info;
     }
 
+    private final GeoServerInfo geoserverSingleton = new GeoServerInfoImpl();
+
     public @ObjectFactory GeoServerInfo geoServerInfo(GeoServer source) {
-        return create(source.getId(), GeoServerInfoImpl::new);
+        return create(source.getId(), () -> geoserverSingleton);
+        // return create(source.getId(), GeoServerInfoImpl::new);
     }
 
     public @ObjectFactory SettingsInfo settingsInfo(Settings source) {
@@ -57,12 +59,16 @@ public class ObjectFacotries {
         return new CoverageAccessInfoImpl();
     }
 
+    private final JAIInfo jaiInfoSingleton = new JAIInfoImpl();
+
     public @ObjectFactory JAIInfo jaiInfo() {
-        return new JAIInfoImpl();
+        return jaiInfoSingleton;
+        // return new JAIInfoImpl();
     }
 
     public @ObjectFactory org.geoserver.config.JAIEXTInfo jaiExtInfo(JAIEXTInfo source) {
-        return new JAIEXTInfoImpl();
+        return jaiInfo().getJAIEXTInfo();
+        // return new JAIEXTInfoImpl();
     }
 
     public @ObjectFactory ContactInfo contactInfo() {
