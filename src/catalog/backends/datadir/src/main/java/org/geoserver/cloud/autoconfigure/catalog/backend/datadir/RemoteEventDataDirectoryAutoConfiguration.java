@@ -4,23 +4,19 @@
  */
 package org.geoserver.cloud.autoconfigure.catalog.backend.datadir;
 
-import org.geoserver.catalog.plugin.CatalogPlugin;
 import org.geoserver.cloud.autoconfigure.catalog.event.ConditionalOnCatalogEvents;
-import org.geoserver.cloud.event.remote.datadir.RemoteEventDataDirectoryProcessor;
-import org.geoserver.config.plugin.RepositoryGeoServerFacade;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.geoserver.cloud.event.remote.datadir.RemoteEventDataDirectoryConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
+/**
+ * {@link AutoConfiguration @AutoConfiguration} to contribute beans related to handling remotely
+ * produced catalog and config events
+ *
+ * @see RemoteEventDataDirectoryConfiguration
+ */
 @AutoConfiguration
 @ConditionalOnDataDirectoryEnabled
 @ConditionalOnCatalogEvents
-public class RemoteEventDataDirectoryAutoConfiguration {
-
-    @Bean
-    RemoteEventDataDirectoryProcessor dataDirectoryRemoteEventProcessor(
-            @Qualifier("geoserverFacade") RepositoryGeoServerFacade configFacade,
-            @Qualifier("rawCatalog") CatalogPlugin rawCatalog) {
-        return new RemoteEventDataDirectoryProcessor(configFacade, rawCatalog);
-    }
-}
+@Import(RemoteEventDataDirectoryConfiguration.class)
+public class RemoteEventDataDirectoryAutoConfiguration {}
