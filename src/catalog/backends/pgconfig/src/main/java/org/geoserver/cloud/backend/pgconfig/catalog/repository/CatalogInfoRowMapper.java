@@ -311,11 +311,12 @@ public final class CatalogInfoRowMapper {
      * @see #mapLayer(ResultSet, int)
      * @see #mapLayerGroup(ResultSet, int)
      */
-    public PublishedInfo mapPublishedInfo(ResultSet rs, int rowNum) throws SQLException {
+    @SuppressWarnings("unchecked")
+    public <P extends PublishedInfo> P mapPublishedInfo(ResultSet rs, int rowNum) throws SQLException {
         final String type = rs.getString("@type");
         return switch (type) {
-            case "LayerInfo" -> mapLayer(rs, rowNum);
-            case "LayerGroupInfo" -> mapLayerGroup(rs, rowNum);
+            case "LayerInfo" -> (P) mapLayer(rs, rowNum);
+            case "LayerGroupInfo" -> (P) mapLayerGroup(rs, rowNum);
             default -> throw new IllegalArgumentException("Unexpected value: " + type);
         };
     }
@@ -477,7 +478,7 @@ public final class CatalogInfoRowMapper {
         return mapper::mapLayerGroup;
     }
 
-    public static RowMapper<PublishedInfo> published(Function<String, Optional<StyleInfo>> styleLoader) {
+    public static <P extends PublishedInfo> RowMapper<P> published(Function<String, Optional<StyleInfo>> styleLoader) {
         CatalogInfoRowMapper mapper = new CatalogInfoRowMapper();
         mapper.setStyleLoader(styleLoader);
         return mapper::mapPublishedInfo;
