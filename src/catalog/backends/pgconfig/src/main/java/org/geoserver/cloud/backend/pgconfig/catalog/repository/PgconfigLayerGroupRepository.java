@@ -18,14 +18,15 @@ import java.util.stream.Stream;
 /**
  * @since 1.4
  */
-public class PgconfigLayerGroupRepository extends PgconfigCatalogInfoRepository<LayerGroupInfo>
+public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepository<LayerGroupInfo>
         implements LayerGroupRepository {
 
     /**
      * @param template
      */
-    public PgconfigLayerGroupRepository(@NonNull JdbcTemplate template) {
-        super(template);
+    public PgconfigLayerGroupRepository(
+            @NonNull JdbcTemplate template, @NonNull PgconfigStyleRepository styleLoader) {
+        super(LayerGroupInfo.class, template, styleLoader);
     }
 
     @Override
@@ -36,6 +37,11 @@ public class PgconfigLayerGroupRepository extends PgconfigCatalogInfoRepository<
     @Override
     protected String getQueryTable() {
         return "layergroupinfos";
+    }
+
+    @Override
+    protected RowMapper<LayerGroupInfo> newRowMapper() {
+        return CatalogInfoRowMapper.layerGroup(styleLoader::findById);
     }
 
     @Override
@@ -82,11 +88,5 @@ public class PgconfigLayerGroupRepository extends PgconfigCatalogInfoRepository<
                 WHERE "workspace.id" = ?
                 """;
         return super.queryForStream(sql, workspace.getId());
-    }
-
-    @Override
-    protected RowMapper<LayerGroupInfo> newRowMapper() {
-        PgconfigStyleRepository styleLoader = new PgconfigStyleRepository(template);
-        return CatalogInfoRowMapper.layerGroup(styleLoader::findById);
     }
 }

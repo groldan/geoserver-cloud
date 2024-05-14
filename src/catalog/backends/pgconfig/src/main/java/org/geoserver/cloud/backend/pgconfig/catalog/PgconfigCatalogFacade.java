@@ -31,14 +31,14 @@ import java.util.function.UnaryOperator;
 public class PgconfigCatalogFacade extends RepositoryCatalogFacadeImpl {
 
     public PgconfigCatalogFacade(@NonNull JdbcTemplate template) {
-        PgconfigNamespaceRepository namespaces = new PgconfigNamespaceRepository(template);
-        PgconfigWorkspaceRepository workspaces = new PgconfigWorkspaceRepository(template);
-        PgconfigStyleRepository styles = new PgconfigStyleRepository(template);
+        var namespaces = new PgconfigNamespaceRepository(template);
+        var workspaces = new PgconfigWorkspaceRepository(template);
+        var styles = new PgconfigStyleRepository(template);
 
-        PgconfigStoreRepository stores = new PgconfigStoreRepository(template);
-        PgconfigLayerRepository layers = new PgconfigLayerRepository(template, styles);
-        PgconfigResourceRepository resources = new PgconfigResourceRepository(template, layers);
-        PgconfigLayerGroupRepository layerGroups = new PgconfigLayerGroupRepository(template);
+        var stores = new PgconfigStoreRepository(template);
+        var layers = new PgconfigLayerRepository(template, styles);
+        var resources = new PgconfigResourceRepository(template, layers);
+        var layerGroups = new PgconfigLayerGroupRepository(template, styles);
 
         super.setNamespaceRepository(namespaces);
         super.setWorkspaceRepository(workspaces);
