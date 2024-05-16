@@ -21,10 +21,8 @@ import org.geoserver.catalog.plugin.resolving.ResolvingCatalogInfoRepository;
 import org.geoserver.catalog.plugin.resolving.ResolvingFacade;
 import org.geoserver.cloud.backend.pgconfig.catalog.filter.PgconfigQueryBuilder;
 import org.geotools.api.filter.Filter;
-import org.geotools.api.filter.FilterFactory;
 import org.geotools.api.filter.sort.SortBy;
 import org.geotools.api.filter.sort.SortOrder;
-import org.geotools.factory.CommonFactoryFinder;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -51,8 +49,6 @@ public abstract class PgconfigCatalogInfoRepository<T extends CatalogInfo>
         implements CatalogInfoRepository<T>, ResolvingFacade<T> {
 
     protected static final ObjectMapper infoMapper = PgconfigObjectMapper.newObjectMapper();
-
-    protected static final FilterFactory FILTER_FACTORY = CommonFactoryFinder.getFilterFactory();
 
     protected final @NonNull LoggingTemplate template;
 
@@ -215,7 +211,7 @@ public abstract class PgconfigCatalogInfoRepository<T extends CatalogInfo>
         return info -> null != info && filter.evaluate(info);
     }
 
-    private <S extends Info> Filter applyTypeFilter(Filter filter, Class<S> type) {
+    protected <S extends Info> Filter applyTypeFilter(Filter filter, Class<S> type) {
         if (!getContentType().equals(type)) {
             filter = Predicates.and(Predicates.isInstanceOf(type), filter);
         }

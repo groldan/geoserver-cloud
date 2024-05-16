@@ -587,27 +587,31 @@ public class RepositoryCatalogFacadeImpl
 
     @Override
     public <T extends CatalogInfo> int count(final Class<T> of, Filter filter) {
-        long count;
         filter = SimplifyingFilterVisitor.simplify(filter);
         if (PublishedInfo.class.equals(of)) {
-            Map<Class<?>, Filter> filters = splitOredInstanceOf(filter);
-            Filter layerFilter = filters.getOrDefault(LayerInfo.class, filter);
-            Filter lgFilter = filters.getOrDefault(LayerGroupInfo.class, filter);
-            long layers = count(LayerInfo.class, layerFilter);
-            long groups = count(LayerGroupInfo.class, lgFilter);
-            count = layers + groups;
-        } else {
-            try {
-                count = repository(of).count(of, filter);
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-                throw new CatalogException(
-                        "Error obtaining count of %s with filter %s"
-                                .formatted(of.getSimpleName(), filter),
-                        e);
-            }
+            return countPublishedInfo(filter);
         }
-        return count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count;
+        return countInternal(of, filter);
+    }
+
+    protected <T extends CatalogInfo> int countInternal(Class<T> of, Filter filter) {
+        try {
+            return (int) repository(of).count(of, filter);
+        } catch (RuntimeException e) {
+            throw new CatalogException(
+                    "Error obtaining count of %s with filter %s"
+                            .formatted(of.getSimpleName(), filter),
+                    e);
+        }
+    }
+
+    protected int countPublishedInfo(Filter filter) {
+        Map<Class<?>, Filter> filters = splitOredInstanceOf(filter);
+        Filter layerFilter = filters.getOrDefault(LayerInfo.class, filter);
+        Filter lgFilter = filters.getOrDefault(LayerGroupInfo.class, filter);
+        int layers = count(LayerInfo.class, layerFilter);
+        int groups = count(LayerGroupInfo.class, lgFilter);
+        return layers + groups;
     }
 
     Map<Class<?>, Filter> splitOredInstanceOf(Filter filter) {
@@ -681,8 +685,12 @@ public class RepositoryCatalogFacadeImpl
         }
         final Class<T> type = query.getType();
         if (PublishedInfo.class.equals(type)) {
-            return queryPublishedInfo(query).map(query.getType()::cast);
+            return queryPublishedInfo(query.as()).map(query.getType()::cast);
         }
+        return queryInternal(query);
+    }
+
+    protected <T extends CatalogInfo> Stream<T> queryInternal(Query<T> query) {
         try {
             checkCanSort(query);
             return repository(query.getType()).findAll(query);
@@ -700,7 +708,7 @@ public class RepositoryCatalogFacadeImpl
      *
      * <p>When the returned stream is closed, it'll close the two underlying streams
      */
-    protected Stream<PublishedInfo> queryPublishedInfo(Query<?> query) {
+    protected Stream<PublishedInfo> queryPublishedInfo(Query<PublishedInfo> query) {
         final Filter filter = SimplifyingFilterVisitor.simplify(query.getFilter());
         final Map<Class<?>, Filter> filters = splitOredInstanceOf(filter);
         final Filter layerFilter = filters.getOrDefault(LayerInfo.class, filter);

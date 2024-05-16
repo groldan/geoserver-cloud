@@ -35,11 +35,6 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
     }
 
     @Override
-    protected String getQueryTable() {
-        return "layergroupinfos";
-    }
-
-    @Override
     protected RowMapper<LayerGroupInfo> newRowMapper() {
         return CatalogInfoRowMapper.layerGroup(styleLoader::findById);
     }
@@ -49,8 +44,8 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
         String sql =
                 """
                 SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" IS NULL AND name = ?
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" IS NULL AND name = ?
                 """;
         return findOne(sql, name);
     }
@@ -62,8 +57,8 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
         String sql =
                 """
                 SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" = ? AND name = ?
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" = ? AND name = ?
                 """;
         return findOne(sql, workspace.getId(), name);
     }
@@ -73,8 +68,8 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
         String sql =
                 """
                 SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" IS NULL
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" IS NULL
                 """;
         return super.queryForStream(sql);
     }
@@ -84,8 +79,8 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
         String sql =
                 """
                 SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" = ?
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" = ?
                 """;
         return super.queryForStream(sql, workspace.getId());
     }

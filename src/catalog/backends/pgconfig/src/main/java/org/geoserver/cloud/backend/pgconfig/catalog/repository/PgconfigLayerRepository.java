@@ -7,6 +7,7 @@ package org.geoserver.cloud.backend.pgconfig.catalog.repository;
 import lombok.NonNull;
 
 import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.Predicates;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
@@ -38,11 +39,6 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
     }
 
     @Override
-    protected String getQueryTable() {
-        return "layerinfos";
-    }
-
-    @Override
     protected RowMapper<LayerInfo> newRowMapper() {
         return CatalogInfoRowMapper.layer(styleLoader::findById);
     }
@@ -52,8 +48,8 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
         String sql =
                 """
                 SELECT publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
-                FROM layerinfos \
-                WHERE "%s" = ?
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerInfo' AND "%s" = ?
                 """;
         if (possiblyPrefixedName.contains(":")) {
             // two options here, it's either a prefixed name like in <workspace>:<name>, or the
@@ -69,12 +65,13 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
 
     @Override
     public Stream<LayerInfo> findAllByDefaultStyleOrStyles(@NonNull StyleInfo style) {
-        var ff = FILTER_FACTORY;
-        Filter filter =
-                ff.or(
-                        ff.equals(ff.property("defaultStyle.id"), ff.literal(style.getId())),
-                        ff.equals(ff.property("styles.id"), ff.literal(style.getId())));
+        Filter typeFilter = Predicates.isInstanceOf(LayerInfo.class);
+        Filter styleFilter =
+                Predicates.or(
+                        Predicates.equal("defaultStyle.id", style.getId()),
+                        Predicates.equal("styles.id", style.getId()));
 
+        Filter filter = Predicates.and(typeFilter, styleFilter);
         return findAll(Query.valueOf(LayerInfo.class, filter));
     }
 
@@ -83,8 +80,8 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
         String sql =
                 """
                 SELECT publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
-                FROM layerinfos \
-                WHERE "resource.id" = ?
+                FROM publishedinfos_mat \
+                WHERE "@type" = 'LayerInfo' AND "resource.id" = ?
                 """;
         return super.queryForStream(sql, resource.getId());
     }

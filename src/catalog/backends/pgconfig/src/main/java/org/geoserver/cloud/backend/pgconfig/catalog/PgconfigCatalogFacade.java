@@ -8,6 +8,8 @@ import lombok.NonNull;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogInfo;
+import org.geoserver.catalog.PublishedInfo;
+import org.geoserver.catalog.plugin.Query;
 import org.geoserver.catalog.plugin.RepositoryCatalogFacadeImpl;
 import org.geoserver.catalog.plugin.resolving.CatalogPropertyResolver;
 import org.geoserver.catalog.plugin.resolving.CollectionPropertiesInitializer;
@@ -20,10 +22,12 @@ import org.geoserver.cloud.backend.pgconfig.catalog.repository.PgconfigResourceR
 import org.geoserver.cloud.backend.pgconfig.catalog.repository.PgconfigStoreRepository;
 import org.geoserver.cloud.backend.pgconfig.catalog.repository.PgconfigStyleRepository;
 import org.geoserver.cloud.backend.pgconfig.catalog.repository.PgconfigWorkspaceRepository;
+import org.geotools.api.filter.Filter;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 /**
  * @since 1.4
@@ -53,6 +57,16 @@ public class PgconfigCatalogFacade extends RepositoryCatalogFacadeImpl {
     public void setCatalog(Catalog catalog) {
         super.setCatalog(catalog);
         setOutboundResolver();
+    }
+
+    @Override
+    protected int countPublishedInfo(Filter filter) {
+        return countInternal(PublishedInfo.class, filter);
+    }
+
+    @Override
+    protected Stream<PublishedInfo> queryPublishedInfo(Query<PublishedInfo> query) {
+        return super.queryPublishedInfo(query);
     }
 
     @SuppressWarnings("unchecked")
