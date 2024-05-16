@@ -27,28 +27,24 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
     }
 
     @Override
-    public Class<LayerGroupInfo> getContentType() {
-        return LayerGroupInfo.class;
+    protected String getReturnColumns() {
+        return CatalogInfoRowMapper.LAYERGROUPINFO_BUILD_COLUMNS;
     }
 
     @Override
-    protected String getQueryTable() {
-        return "layergroupinfos";
-    }
-
-    @Override
-    protected RowMapper<LayerGroupInfo> newRowMapper() {
-        return CatalogInfoRowMapper.layerGroup(styleLoader::findById);
+    protected final RowMapper<LayerGroupInfo> newRowMapper() {
+        return CatalogInfoRowMapper.<LayerGroupInfo>newInstance().setStyleLoader(styleRepo::findById);
     }
 
     @Override
     public Optional<LayerGroupInfo> findByNameAndWorkspaceIsNull(@NonNull String name) {
         String sql =
                 """
-                SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" IS NULL AND name = ?
-                """;
+                SELECT "@type", publishedinfo, workspace \
+                FROM %s \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" IS NULL AND name = ?
+                """
+                        .formatted(getQueryTable());
         return findOne(sql, name);
     }
 
@@ -57,10 +53,11 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
 
         String sql =
                 """
-                SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" = ? AND name = ?
-                """;
+                SELECT "@type", publishedinfo, workspace \
+                FROM %s \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" = ? AND name = ?
+                """
+                        .formatted(getQueryTable());
         return findOne(sql, workspace.getId(), name);
     }
 
@@ -68,10 +65,11 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
     public Stream<LayerGroupInfo> findAllByWorkspaceIsNull() {
         String sql =
                 """
-                SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" IS NULL
-                """;
+                SELECT "@type", publishedinfo, workspace \
+                FROM %s \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" IS NULL
+                """
+                        .formatted(getQueryTable());
         return super.queryForStream(sql);
     }
 
@@ -79,10 +77,11 @@ public class PgconfigLayerGroupRepository extends PgconfigPublishedInfoRepositor
     public Stream<LayerGroupInfo> findAllByWorkspace(WorkspaceInfo workspace) {
         String sql =
                 """
-                SELECT publishedinfo, workspace \
-                FROM layergroupinfos \
-                WHERE "workspace.id" = ?
-                """;
+                SELECT "@type", publishedinfo, workspace \
+                FROM %s \
+                WHERE "@type" = 'LayerGroupInfo' AND "workspace.id" = ?
+                """
+                        .formatted(getQueryTable());
         return super.queryForStream(sql, workspace.getId());
     }
 }

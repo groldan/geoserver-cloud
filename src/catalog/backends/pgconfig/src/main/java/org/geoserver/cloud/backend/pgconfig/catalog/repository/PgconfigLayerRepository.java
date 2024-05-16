@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.NonNull;
 import org.geoserver.catalog.LayerInfo;
+import org.geoserver.catalog.Predicates;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.plugin.CatalogInfoRepository.LayerRepository;
@@ -29,46 +30,41 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
     }
 
     @Override
-    public Class<LayerInfo> getContentType() {
-        return LayerInfo.class;
+    protected String getReturnColumns() {
+        return CatalogInfoRowMapper.LAYERINFO_BUILD_COLUMNS;
     }
 
     @Override
-    protected String getQueryTable() {
-        return "layerinfos";
-    }
-
-    @Override
-    protected RowMapper<LayerInfo> newRowMapper() {
-        return CatalogInfoRowMapper.layer(styleLoader::findById);
+    protected final RowMapper<LayerInfo> newRowMapper() {
+        return CatalogInfoRowMapper.<LayerInfo>newInstance().setStyleLoader(styleRepo::findById);
     }
 
     @Override
     public Optional<LayerInfo> findOneByName(@NonNull String possiblyPrefixedName) {
         String sql =
                 """
-                SELECT publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
-                FROM layerinfos \
-                WHERE "%s" = ?
+                SELECT "@type", publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
+                FROM %s \
+                WHERE "@type" = 'LayerInfo' AND "%s" = ?
                 """;
         if (possiblyPrefixedName.contains(":")) {
             // two options here, it's either a prefixed name like in <workspace>:<name>, or the
             // ResourceInfo name actually contains a colon
-            Optional<LayerInfo> found = findOne(sql.formatted("prefixedName"), possiblyPrefixedName);
+            Optional<LayerInfo> found = findOne(sql.formatted(getQueryTable(), "prefixedName"), possiblyPrefixedName);
             if (found.isPresent()) return found;
         }
 
         // no colon in name or name actually contains a colon
-        return findOne(sql.formatted("name"), possiblyPrefixedName);
+        return findOne(sql.formatted(getQueryTable(), "name"), possiblyPrefixedName);
     }
 
     @Override
     public Stream<LayerInfo> findAllByDefaultStyleOrStyles(@NonNull StyleInfo style) {
-        var ff = FILTER_FACTORY;
-        Filter filter = ff.or(
-                ff.equals(ff.property("defaultStyle.id"), ff.literal(style.getId())),
-                ff.equals(ff.property("styles.id"), ff.literal(style.getId())));
+        Filter typeFilter = Predicates.isInstanceOf(LayerInfo.class);
+        Filter styleFilter = Predicates.or(
+                Predicates.equal("defaultStyle.id", style.getId()), Predicates.equal("styles.id", style.getId()));
 
+        Filter filter = Predicates.and(typeFilter, styleFilter);
         return findAll(Query.valueOf(LayerInfo.class, filter));
     }
 
@@ -76,10 +72,11 @@ public class PgconfigLayerRepository extends PgconfigPublishedInfoRepository<Lay
     public Stream<LayerInfo> findAllByResource(@NonNull ResourceInfo resource) {
         String sql =
                 """
-                SELECT publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
-                FROM layerinfos \
-                WHERE "resource.id" = ?
-                """;
+                SELECT "@type", publishedinfo, resource, store, workspace, namespace, "defaultStyle" \
+                FROM %s \
+                WHERE "@type" = 'LayerInfo' AND "resource.id" = ?
+                """
+                        .formatted(getQueryTable());
         return super.queryForStream(sql, resource.getId());
     }
 }

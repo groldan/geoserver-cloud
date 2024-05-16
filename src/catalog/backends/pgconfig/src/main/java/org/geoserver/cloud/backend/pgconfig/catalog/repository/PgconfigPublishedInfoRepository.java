@@ -4,34 +4,42 @@
  */
 package org.geoserver.cloud.backend.pgconfig.catalog.repository;
 
+import static org.geoserver.catalog.Predicates.and;
+import static org.geoserver.catalog.Predicates.isInstanceOf;
+
 import lombok.NonNull;
+import org.geoserver.catalog.Info;
 import org.geoserver.catalog.PublishedInfo;
+import org.geotools.api.filter.Filter;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 
 /**
- * @since 1.9
+ * @since 2.27.0.0
  */
 public abstract class PgconfigPublishedInfoRepository<P extends PublishedInfo>
         extends PgconfigCatalogInfoRepository<P> {
 
-    protected final PgconfigStyleRepository styleLoader;
-    private final Class<P> type;
+    protected final PgconfigStyleRepository styleRepo;
 
     protected PgconfigPublishedInfoRepository(
             @NonNull Class<P> type, @NonNull JdbcTemplate template, @NonNull PgconfigStyleRepository styleLoader) {
-        super(template);
-        this.type = type;
-        this.styleLoader = styleLoader;
+        super(type, template);
+        this.styleRepo = styleLoader;
+    }
+
+    /**
+     * @return {@code publishedinfos_mat}, the materialized table maintained by triggers for fast querying of {@link PublishedInfo}s
+     */
+    @Override
+    protected final String getQueryTable() {
+        return "publishedinfos_mat";
     }
 
     @Override
-    public Class<P> getContentType() {
-        return type;
-    }
-
-    @Override
-    protected RowMapper<P> newRowMapper() {
-        return CatalogInfoRowMapper.published(styleLoader::findById);
+    protected <S extends Info> Filter applyTypeFilter(Filter filter, Class<S> type) {
+        if (!PublishedInfo.class.equals(type)) {
+            filter = and(isInstanceOf(type), filter);
+        }
+        return filter;
     }
 }
