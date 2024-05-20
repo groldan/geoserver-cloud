@@ -36,13 +36,9 @@ import org.geoserver.wps.WPSInfoImpl;
 import org.geotools.api.util.InternationalString;
 import org.geotools.coverage.grid.io.OverviewPolicy;
 import org.geotools.process.factory.AnnotationDrivenProcessFactory;
-import org.geotools.util.Converters;
 import org.springframework.lang.Nullable;
 
-import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -523,24 +519,6 @@ public class CatalogTestData {
         fttype.setNamespace(ns);
         OwsUtils.resolveCollections(fttype);
         return fttype;
-    }
-
-    public void assertEqualsLenientConnectionParameters(Info info1, Info info2) {
-        if (info1 != null && info2 != null && info1 instanceof DataStoreInfo ds1) {
-            DataStoreInfo ds2 = (DataStoreInfo) info2;
-            Map<String, Serializable> p1 = new HashMap<>(ds1.getConnectionParameters());
-            Map<String, Serializable> p2 = new HashMap<>(ds2.getConnectionParameters());
-            p1.forEach(
-                    (k, v) ->
-                            ds1.getConnectionParameters()
-                                    .put(k, Converters.convert(v, String.class)));
-            p2.forEach(
-                    (k, v) ->
-                            ds2.getConnectionParameters()
-                                    .put(k, Converters.convert(v, String.class)));
-            assertEquals(ds1.getConnectionParameters(), ds2.getConnectionParameters());
-        }
-        assertEquals(info1, info2);
     }
 
     public void assertInternationalStringPropertiesEqual(Info info1, Info info2) {

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import org.geoserver.catalog.AttributeTypeInfo;
@@ -26,6 +27,7 @@ import org.geoserver.catalog.CatalogTestData;
 import org.geoserver.catalog.CoverageDimensionInfo;
 import org.geoserver.catalog.CoverageStoreInfo;
 import org.geoserver.catalog.DataLinkInfo;
+import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.DimensionInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.Info;
@@ -60,6 +62,7 @@ import org.geoserver.config.plugin.GeoServerImpl;
 import org.geoserver.platform.GeoServerExtensionsHelper;
 import org.geotools.api.coverage.grid.GridEnvelope;
 import org.geotools.api.coverage.grid.GridGeometry;
+import org.geotools.api.data.DataAccessFactory;
 import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.api.filter.Filter;
 import org.geotools.api.filter.FilterFactory;
@@ -86,6 +89,7 @@ import org.junit.jupiter.api.Test;
 
 import si.uom.SI;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -133,9 +137,14 @@ public abstract class GeoServerCatalogModuleTest {
 
     protected abstract ObjectMapper newObjectMapper();
 
+    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig) {
+        boolean assertEquals = true;
+        return catalogInfoRoundtripTest(orig, assertEquals);
+    }
+
+    @SneakyThrows(JsonProcessingException.class)
     @SuppressWarnings("unchecked")
-    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig)
-            throws JsonProcessingException {
+    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig, boolean assertEquals) {
         ObjectWriter writer = objectMapper.writer();
         writer = writer.withDefaultPrettyPrinter();
 
@@ -168,8 +177,9 @@ public abstract class GeoServerCatalogModuleTest {
             proxy.commit();
             unproxied = (T) proxy.getProxyObject();
         }
-
-        data.assertEqualsLenientConnectionParameters(unproxied, decoded);
+        if (assertEquals) {
+            assertEquals(unproxied, decoded);
+        }
         data.assertInternationalStringPropertiesEqual(unproxied, decoded);
 
         return decoded;
@@ -200,6 +210,55 @@ public abstract class GeoServerCatalogModuleTest {
         catalogInfoRoundtripTest(data.dataStoreA);
         catalogInfoRoundtripTest(data.dataStoreB);
         catalogInfoRoundtripTest(data.dataStoreC);
+    }
+
+    @Test
+    void testStoreInfoConnectionParameterPrimitives() throws Exception {
+        testStoreConnectionParameter(Byte.valueOf((byte) 10));
+        testStoreConnectionParameter(Short.valueOf((short) 101));
+        testStoreConnectionParameter(Integer.valueOf(101));
+        testStoreConnectionParameter(Long.valueOf(101));
+        testStoreConnectionParameter(Float.valueOf(101.1f));
+        testStoreConnectionParameter(Double.valueOf(101.1));
+        testStoreConnectionParameter("String value");
+    }
+
+    @Test
+    void storeParameterReferencedEnvelope() throws Exception {
+        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
+        ReferencedEnvelope bbox = new ReferencedEnvelope(-180, 180, -90, 90, crs);
+        testStoreConnectionParameter(bbox);
+    }
+
+    void testStoreConnectionParameter(Serializable value) {
+        DataStoreInfo store = data.dataStoreA;
+        store.getConnectionParameters().clear();
+        String key = value.getClass().getName();
+        store.getConnectionParameters().put(key, value);
+        Map<String, Serializable> expected = Map.copyOf(store.getConnectionParameters());
+        final boolean assertEquals = false;
+        DataStoreInfo decoded = catalogInfoRoundtripTest(store, assertEquals);
+        assertConnectionParameters(expected, decoded);
+    }
+
+    @SneakyThrows({ClassNotFoundException.class, IOException.class})
+    private void assertConnectionParameters(Map<String, Serializable> expected, StoreInfo decoded) {
+
+        Map<String, Serializable> params = decoded.getConnectionParameters();
+        assertThat(params.keySet(), CoreMatchers.equalTo(expected.keySet()));
+
+        for (var entry : params.entrySet()) {
+            String key = entry.getKey();
+            Class<?> type = Class.forName(key);
+            // simulate how a DataAccessFactory would resolve the param
+            String desc = "test parameter for type %s".formatted(key);
+            boolean required = true;
+            DataAccessFactory.Param param = new DataAccessFactory.Param(key, type, desc, required);
+
+            Object lookUp = param.lookUp(params);
+            Serializable expectedValue = expected.get(key);
+            assertThat(lookUp, CoreMatchers.equalTo(expectedValue));
+        }
     }
 
     @Test
@@ -451,7 +510,8 @@ public abstract class GeoServerCatalogModuleTest {
         PropertyIsEqualTo filter = equals("literalTestProp", value);
         PropertyIsEqualTo decodedFilter = roundTrip(filter, Filter.class);
         assertEquals(filter.getExpression1(), decodedFilter.getExpression1());
-        // can't trust the equals() implementation on the provided object, make some basic checks
+        // can't trust the equals() implementation on the provided object, make some
+        // basic checks
         // and return the decoded object
         Literal decodedExp = (Literal) decodedFilter.getExpression2();
         Object decodedValue = decodedExp.getValue();
@@ -522,23 +582,23 @@ public abstract class GeoServerCatalogModuleTest {
     void testValueCoordinateReferenceSystemCustomCRS() throws Exception {
         String customWKT =
                 """
-			PROJCS[ "UTM Zone 10, Northern Hemisphere",
-			  GEOGCS["GRS 1980(IUGG, 1980)",
-			    DATUM["unknown",
-			       SPHEROID["GRS80",6378137,298.257222101],
-			       TOWGS84[0,0,0,0,0,0,0]
-			    ],
-			    PRIMEM["Greenwich",0],
-			    UNIT["degree",0.0174532925199433]
-			  ],
-			  PROJECTION["Transverse_Mercator"],
-			  PARAMETER["latitude_of_origin",0],
-			  PARAMETER["central_meridian",-123],
-			  PARAMETER["scale_factor",0.9996],
-			  PARAMETER["false_easting",1640419.947506562],
-			  PARAMETER["false_northing",0],
-			  UNIT["Foot (International)",0.3048]
-			]""";
+				PROJCS[ "UTM Zone 10, Northern Hemisphere",
+				  GEOGCS["GRS 1980(IUGG, 1980)",
+				    DATUM["unknown",
+				       SPHEROID["GRS80",6378137,298.257222101],
+				       TOWGS84[0,0,0,0,0,0,0]
+				    ],
+				    PRIMEM["Greenwich",0],
+				    UNIT["degree",0.0174532925199433]
+				  ],
+				  PROJECTION["Transverse_Mercator"],
+				  PARAMETER["latitude_of_origin",0],
+				  PARAMETER["central_meridian",-123],
+				  PARAMETER["scale_factor",0.9996],
+				  PARAMETER["false_easting",1640419.947506562],
+				  PARAMETER["false_northing",0],
+				  UNIT["Foot (International)",0.3048]
+				]""";
 
         CoordinateReferenceSystem crs = CRS.parseWKT(customWKT);
         testValueCoordinateReferenceSystem(crs);
