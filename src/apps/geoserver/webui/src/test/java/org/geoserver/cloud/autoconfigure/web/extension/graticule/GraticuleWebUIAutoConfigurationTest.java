@@ -2,17 +2,15 @@
  * (c) 2024 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.cloud.autoconfigure.vector.formats;
+package org.geoserver.cloud.autoconfigure.web.extension.graticule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.geoserver.web.GeoServerApplication;
 import org.geoserver.web.data.resource.DataStorePanelInfo;
 import org.geoserver.web.data.store.graticule.GraticuleStoreEditPanel;
 import org.geotools.data.graticule.GraticuleDataStoreFactory;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 /**
@@ -20,11 +18,12 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
  *
  * @since 1.8
  */
-public class GraticuleConfigurationTest {
+class GraticuleWebUIAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner =
             new ApplicationContextRunner()
-                    .withConfiguration(AutoConfigurations.of(GraticuleConfiguration.class));
+                    .withConfiguration(
+                            AutoConfigurations.of(GraticuleWebUIAutoConfiguration.class));
 
     @Test
     void testConditionalOnGraticuleWebUI_enabled() {
@@ -44,16 +43,5 @@ public class GraticuleConfigurationTest {
                             .hasFieldOrPropertyWithValue(
                                     "componentClass", GraticuleStoreEditPanel.class);
                 });
-    }
-
-    @Test
-    void testConditionalOnGraticuleWebUI_disabled() {
-
-        contextRunner
-                .withClassLoader(new FilteredClassLoader(GeoServerApplication.class))
-                .run(
-                        context -> {
-                            assertThat(context).doesNotHaveBean("graticuleStoreEditPanel");
-                        });
     }
 }
