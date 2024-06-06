@@ -57,6 +57,8 @@ import org.mapstruct.factory.Mappers;
 
 import java.awt.geom.AffineTransform;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Mapper(
@@ -205,6 +207,28 @@ public interface GeoServerValueObjectsMapper {
                     md.put(k, (Serializable) v);
                 });
         return md;
+    }
+
+    default ConnectionParameters connectionParameters(Map<String, Serializable> params) {
+        if (params == null) return null;
+        ConnectionParameters dto = new ConnectionParameters();
+        params.forEach(
+                (k, v) -> {
+                    Literal l = Literal.valueOf(v);
+                    dto.put(k, l);
+                });
+        return dto;
+    }
+
+    default Map<String, Serializable> connectionParameters(ConnectionParameters dto) {
+        if (dto == null) return null;
+        Map<String, Serializable> params = new HashMap<>();
+        dto.forEach(
+                (k, l) -> {
+                    Object v = ((Literal) l).getValue();
+                    params.put(k, (Serializable) v);
+                });
+        return params;
     }
 
     KeywordInfo keyword(Keyword dto);

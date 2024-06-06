@@ -9,8 +9,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.io.Serializable;
-import java.util.Map;
+import org.geoserver.jackson.databind.catalog.mapper.ConnectionParameters;
 
 @JsonSubTypes({
     @JsonSubTypes.Type(value = CoverageStore.class),
@@ -25,7 +24,8 @@ public abstract class Store extends CatalogInfoDto {
     private String description;
     private String type;
     private boolean enabled;
-    private Map<String, Serializable> connectionParameters;
+    private ConnectionParameters connectionParameters;
+
     private MetadataMapDto metadata;
 
     /**

@@ -138,6 +138,7 @@ public class GeoServerCatalogModule extends SimpleModule {
         super.addDeserializer(type, deserializer);
     }
 
+    @SuppressWarnings("unchecked")
     private void registerValueMappers() {
         addMapperSerializer(
                 Patch.class, PATCH_MAPPER::patchToDto, PatchDto.class, PATCH_MAPPER::dtoToPatch);
@@ -202,5 +203,11 @@ public class GeoServerCatalogModule extends SimpleModule {
                 VALUE_MAPPER::metadataMap,
                 MetadataMapDto.class,
                 VALUE_MAPPER::metadataMap);
+
+        //        addMapperSerializer(
+        //                (Class<Map<String, Serializable>>) (Class<?>) Map.class,
+        //                VALUE_MAPPER::connectionParameters,
+        //                ConnectionParameters.class,
+        //                VALUE_MAPPER::connectionParameters);
     }
 }

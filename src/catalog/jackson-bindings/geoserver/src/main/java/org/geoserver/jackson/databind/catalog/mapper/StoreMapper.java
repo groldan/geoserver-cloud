@@ -48,6 +48,38 @@ public interface StoreMapper {
     @Mapping(target = "catalog", ignore = true)
     DataStoreInfo map(DataStore o);
 
+    //    default ConnectionParameters connectionParametersToDto(Map<String, Serializable> params) {
+    //        ConnectionParameters dto = new ConnectionParameters();
+    //        if (null != params) {
+    //            params.forEach(
+    //                    (k, v) -> {
+    //                        Literal literal = Literal.valueOf(v);
+    //                        dto.put(k, literal);
+    //                    });
+    //        }
+    //        return dto;
+    //    }
+    //
+    //    default Map<String, Serializable> connectionParametersToDto(ConnectionParameters dto) {
+    //        Map<String, Serializable> params = new HashMap<>();
+    //        if (null != dto) {
+    //            dto.forEach(
+    //                    (k, v) -> {
+    //                        Serializable value;
+    //                        if (v instanceof Literal l) {
+    //                            v = l.getValue();
+    //                        }
+    //                        if (v instanceof Serializable s) {
+    //                            value = s;
+    //                        } else {
+    //                            value = Converters.convert(v, String.class);
+    //                        }
+    //                        params.put(k, value);
+    //                    });
+    //        }
+    //        return params;
+    //    }
+
     DataStore map(DataStoreInfo o);
 
     @Mapping(target = "error", ignore = true)

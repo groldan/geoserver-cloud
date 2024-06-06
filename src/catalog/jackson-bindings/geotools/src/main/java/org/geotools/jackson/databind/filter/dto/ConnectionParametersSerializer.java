@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.databind.ser.std.MapSerializer;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import lombok.NonNull;
@@ -45,7 +45,7 @@ import java.util.function.UnaryOperator;
  *
  * @since 1.0
  */
-public class LiteralSerializer extends StdSerializer<Literal> {
+public class ConnectionParametersSerializer extends MapSerializer {
 
     /** */
     static final String TYPE_KEY = "type";
@@ -61,7 +61,7 @@ public class LiteralSerializer extends StdSerializer<Literal> {
     private transient GeoToolsValueMappers classNameMapper =
             Mappers.getMapper(GeoToolsValueMappers.class);
 
-    public LiteralSerializer() {
+    public ConnectionParametersSerializer() {
         super(Literal.class);
     }
 

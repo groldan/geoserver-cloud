@@ -51,6 +51,10 @@ public class LiteralDeserializer extends JsonDeserializer<Literal> {
     @Override
     public Literal deserialize(JsonParser parser, DeserializationContext ctxt) throws IOException {
 
+        if (parser.currentToken().isScalarValue()) {
+            return parseScalar(parser, ctxt);
+        }
+
         expect(parser.currentToken(), JsonToken.START_OBJECT);
         final Class<?> type = readType(parser);
         if (null == type) {
@@ -83,6 +87,23 @@ public class LiteralDeserializer extends JsonDeserializer<Literal> {
         }
         JsonToken token = parser.nextToken();
         expect(token, JsonToken.END_OBJECT);
+        return Literal.valueOf(value);
+    }
+
+    private Literal parseScalar(JsonParser parser, DeserializationContext ctxt) throws IOException {
+        Object value;
+        JsonToken token = parser.currentToken();
+        if (token == JsonToken.VALUE_NULL) {
+            value = null;
+        } else if (token == JsonToken.VALUE_STRING) {
+            value = parser.getValueAsString();
+        } else if (token == JsonToken.VALUE_NUMBER_INT) {
+            value = parser.getIntValue();
+        } else if (token.isBoolean()) {
+            value = parser.getBooleanValue();
+        } else {
+            throw new IllegalStateException("Expected scalar token, got " + token);
+        }
         return Literal.valueOf(value);
     }
 

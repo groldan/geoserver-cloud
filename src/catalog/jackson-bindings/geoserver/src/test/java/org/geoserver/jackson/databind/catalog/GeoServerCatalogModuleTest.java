@@ -4,6 +4,7 @@
  */
 package org.geoserver.jackson.databind.catalog;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,7 +90,6 @@ import org.junit.jupiter.api.Test;
 
 import si.uom.SI;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -213,7 +213,16 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testStoreInfoConnectionParameterPrimitives() throws Exception {
+    void storeParameterScalars() {
+        testStoreConnectionParameter(Integer.valueOf(101));
+        testStoreConnectionParameter(Double.valueOf(101.1));
+        testStoreConnectionParameter(Boolean.TRUE);
+        testStoreConnectionParameter(Boolean.FALSE);
+        testStoreConnectionParameter("String value");
+    }
+
+    @Test
+    void storeParameterPrimitives() {
         testStoreConnectionParameter(Byte.valueOf((byte) 10));
         testStoreConnectionParameter(Short.valueOf((short) 101));
         testStoreConnectionParameter(Integer.valueOf(101));
@@ -223,42 +232,50 @@ public abstract class GeoServerCatalogModuleTest {
         testStoreConnectionParameter("String value");
     }
 
+    void connectionParamsFlatGeoBufDataStoreFactory() {
+        //        DataAccessFactory f = FlatGeobu;
+    }
+
     @Test
-    void storeParameterReferencedEnvelope() throws Exception {
-        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
-        ReferencedEnvelope bbox = new ReferencedEnvelope(-180, 180, -90, 90, crs);
+    @SneakyThrows
+    void storeParameterReferencedEnvelope() {
+        CoordinateReferenceSystem crs;
+        ReferencedEnvelope bbox;
+
+        crs = CRS.decode("EPSG:4326", true);
+        bbox = new ReferencedEnvelope(-180, 180, -90, 90, crs);
+        testStoreConnectionParameter(bbox);
+
+        crs = CRS.decode("EPSG:3857", true);
+        bbox = new ReferencedEnvelope(-20037508.34, -20048966.1, 20037508.34, 20048966.1, crs);
         testStoreConnectionParameter(bbox);
     }
 
     void testStoreConnectionParameter(Serializable value) {
         DataStoreInfo store = data.dataStoreA;
         store.getConnectionParameters().clear();
-        String key = value.getClass().getName();
+        Class<? extends Serializable> type = value.getClass();
+        String key = "test-key-for-%s".formatted(type.getName());
         store.getConnectionParameters().put(key, value);
-        Map<String, Serializable> expected = Map.copyOf(store.getConnectionParameters());
         final boolean assertEquals = false;
         DataStoreInfo decoded = catalogInfoRoundtripTest(store, assertEquals);
-        assertConnectionParameters(expected, decoded);
+        assertConnectionParameters(key, value, decoded.getConnectionParameters());
     }
 
-    @SneakyThrows({ClassNotFoundException.class, IOException.class})
-    private void assertConnectionParameters(Map<String, Serializable> expected, StoreInfo decoded) {
+    @SneakyThrows
+    private void assertConnectionParameters(
+            String key, Object expectedValue, Map<String, Serializable> decodedParams) {
 
-        Map<String, Serializable> params = decoded.getConnectionParameters();
-        assertThat(params.keySet(), CoreMatchers.equalTo(expected.keySet()));
+        assertThat(decodedParams).containsKey(key);
+        Class<?> type = expectedValue.getClass();
 
-        for (var entry : params.entrySet()) {
-            String key = entry.getKey();
-            Class<?> type = Class.forName(key);
-            // simulate how a DataAccessFactory would resolve the param
-            String desc = "test parameter for type %s".formatted(key);
-            boolean required = true;
-            DataAccessFactory.Param param = new DataAccessFactory.Param(key, type, desc, required);
+        // simulate how a DataAccessFactory would resolve the param
+        String desc = "test parameter for type %s".formatted(key);
+        boolean required = true;
+        DataAccessFactory.Param param = new DataAccessFactory.Param(key, type, desc, required);
 
-            Object lookUp = param.lookUp(params);
-            Serializable expectedValue = expected.get(key);
-            assertThat(lookUp, CoreMatchers.equalTo(expectedValue));
-        }
+        Object lookUp = param.lookUp(decodedParams);
+        assertThat(lookUp).isEqualTo(expectedValue);
     }
 
     @Test
