@@ -9,6 +9,7 @@
   <name>GeoServer Cloud</name>
   <modules>
     <module>src</module>
+    <module>docs</module>
   </modules>
   <properties>
     <revision>1.9-SNAPSHOT</revision>

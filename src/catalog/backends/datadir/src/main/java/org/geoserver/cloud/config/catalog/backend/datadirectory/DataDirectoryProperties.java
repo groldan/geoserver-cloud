@@ -22,7 +22,14 @@ import java.util.List;
 @Data
 public class DataDirectoryProperties {
 
+    /**
+     * Whether to use the data-directory catalog back-end to host the GeoServer catalog and services
+     * configuration. Only one catalog back-end can be enabled, and it's usually done by enabling
+     * the corresponding Spring profile (e.g. runnning the applications with
+     * -Dspring.profiles.active=datadir,...)
+     */
     private boolean enabled;
+
     private Path location;
     private boolean parallelLoader = true;
     private DataDirectoryProperties.EventualConsistencyConfig eventualConsistency =

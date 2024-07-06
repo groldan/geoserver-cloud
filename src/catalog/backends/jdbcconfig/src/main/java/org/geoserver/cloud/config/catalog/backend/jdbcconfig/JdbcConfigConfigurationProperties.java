@@ -21,7 +21,15 @@ import java.nio.file.Path;
 @Data
 @ConfigurationProperties(prefix = "geoserver.backend.jdbcconfig")
 public class JdbcConfigConfigurationProperties {
+    /**
+     * Whether to use the jdbcconfig catalog back-end to host the GeoServer catalog and services
+     * configuration. Only one catalog back-end can be enabled, and it's usually done by enabling
+     * the corresponding Spring profile (e.g. runnning the applications with
+     * -Dspring.profiles.active=jdbcconfig,...). Note this catalog back-end is deprecated, use the
+     * pgconfig back-end instead.
+     */
     private boolean enabled;
+
     private boolean initdb;
     private Path cacheDirectory;
     private DataSourceProperties datasource;

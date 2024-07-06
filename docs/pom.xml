@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.geoserver.cloud</groupId>
+    <artifactId>gs-cloud-bom</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>gs-cloud-docs</artifactId>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <!-- generates a markdown file with all the configuration properties defined in @ConfigurationProperties classes -->
+        <!-- See https://github.com/rodnansol/spring-configuration-property-documenter -->
+        <groupId>org.rodnansol</groupId>
+        <artifactId>spring-configuration-property-documenter-maven-plugin</artifactId>
+        <version>0.7.0</version>
+        <executions>
+          <execution>
+            <id>aggregate-docs-markdown</id>
+            <goals>
+              <goal>generate-and-aggregate-documents</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <type>MARKDOWN</type>
+              <outputFile>configuration/config-properties.md</outputFile>
+              <name>GeoServer Cloud configuration properties</name>
+              <description>All externalized configuration properties</description>
+              <markdownCustomization>
+                <!-- https://github.com/rodnansol/spring-configuration-property-documenter/blob/master/docs/modules/ROOT/pages/template-customization.adoc#template-customizations -->
+                <headerEnabled>true</headerEnabled>
+                <tableOfContentsEnabled>true</tableOfContentsEnabled>
+                <includeUnknownGroup>true</includeUnknownGroup>
+                <includeGenerationDate>false</includeGenerationDate>
+                <removeEmptyGroups>true</removeEmptyGroups>
+                <tocTitle>Table of Contents</tocTitle>
+                <locale>en</locale>
+                <!-- STANDARD or COMPACT -->
+                <templateMode>STANDARD</templateMode>
+                <contentCustomization>
+                  <includeClass>true</includeClass>
+                  <includeKey>true</includeKey>
+                  <includeType>true</includeType>
+                  <includeDescription>true</includeDescription>
+                  <includeDefaultValue>true</includeDefaultValue>
+                  <includeDeprecation>false</includeDeprecation>
+                  <includeEnvFormat>true</includeEnvFormat>
+                </contentCustomization>
+              </markdownCustomization>
+              <!--
+find ../src/ -name spring-configuration-metadata.json|sort
+../src/apps/infrastructure/gateway/target/classes/META-INF/spring-configuration-metadata.json
+../src/catalog/backends/common/target/classes/META-INF/spring-configuration-metadata.json
+../src/catalog/backends/datadir/target/classes/META-INF/spring-configuration-metadata.json
+../src/catalog/backends/jdbcconfig/target/classes/META-INF/spring-configuration-metadata.json
+../src/catalog/backends/pgconfig/target/classes/META-INF/spring-configuration-metadata.json
+../src/gwc/autoconfigure/target/classes/META-INF/spring-configuration-metadata.json
+../src/gwc/core/target/classes/META-INF/spring-configuration-metadata.json
+../src/library/spring-boot-simplejndi/target/classes/META-INF/spring-configuration-metadata.json
+../src/starters/observability/target/classes/META-INF/spring-configuration-metadata.json
+../src/starters/security/target/classes/META-INF/spring-configuration-metadata.json
+../src/starters/wms-extensions/target/classes/META-INF/spring-configuration-metadata.json
+-->
+              <inputs>
+                <input>
+                  <name>catalog-common</name>
+                  <description>Common Catalog configuration properties</description>
+                  <input>../src/catalog/backends/common/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>catalog-datadir</name>
+                  <description>Datadir Catalog back-end configuration properties</description>
+                  <input>../src/catalog/backends/datadir/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>catalog-pgconfig</name>
+                  <description>Configuration properties to set up the PostgreSQL
+					  connection pool used by the `pgconfig` Catalogback-end</description>
+                  <input>../src/catalog/backends/pgconfig/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>catalog-jdbcconfig</name>
+                  <description>Deprecatted `jdbcconfig` Catalog back-end configuration properties</description>
+                  <input>../src/catalog/backends/jdbcconfig/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>jndi</name>
+                  <description>simple JNDI, allows to declare JNDI JDBC data sources as externalized
+					  configuration properties in a an application container (tomcat, jetty, etc.) independent way</description>
+                  <input>../src/library/spring-boot-simplejndi/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>security</name>
+                  <description>GeServer Cloud custom security settings</description>
+                  <input>../src/starters/security/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>observability</name>
+                  <description>GeServer Cloud custom observability settings</description>
+                  <input>../src/starters/security/target/classes/META-INF</input>
+                </input>
+                <input>
+                  <name>gwc</name>
+                  <description>GeoWebCache configuration properties</description>
+                  <input>../src/gwc/autoconfigure/target/classes/META-INF</input>
+                  <input>../src/gwc/core/target/classes/META-INF</input>
+                </input>
+              </inputs>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
