@@ -2,7 +2,7 @@
  * (c) 2024 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
  * GPL 2.0 license, available at the root application directory.
  */
-package org.geoserver.cloud.observability.logging.servlet;
+package org.geoserver.cloud.logging.mdc.servlet;
 
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -23,7 +23,7 @@ public class MDCCleaningFilter extends OncePerRequestFilter {
         try {
             chain.doFilter(request, response);
         } finally {
-            MDC.clear();
+            //MDC.clear();
         }
     }
 }

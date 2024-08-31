@@ -4,6 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.gateway;
 
+import org.geoserver.cloud.gateway.filter.RequestIdGlobalFilter;
 import org.geoserver.cloud.gateway.filter.RouteProfileGatewayFilterFactory;
 import org.geoserver.cloud.gateway.filter.StripBasePathGatewayFilterFactory;
 import org.geoserver.cloud.gateway.predicate.RegExpQueryRoutePredicateFactory;
@@ -14,6 +15,11 @@ import org.springframework.core.env.Environment;
 @AutoConfiguration
 public class GatewayApplicationAutoconfiguration {
 
+    @Bean
+    RequestIdGlobalFilter requestIdGlobalFilter() {
+        return new RequestIdGlobalFilter();
+    }
+    
     /**
      * Custom gateway predicate factory to support matching by regular expressions on both name and
      * value of query parameters
