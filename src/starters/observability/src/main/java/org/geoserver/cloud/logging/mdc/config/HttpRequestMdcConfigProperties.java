@@ -210,21 +210,27 @@ public class HttpRequestMdcConfigProperties {
      *     new monotonically increating UID if no such header is present
      */
     public static String findOrCreateRequestId(Supplier<HttpHeaders> headers) {
-        return findRequestId(headers)
-                .orElseGet(() -> newRequestId());
+        return findRequestId(headers).orElseGet(() -> newRequestId());
     }
 
+    /**
+     * @return a new monotonically increating UID
+     */
     public static String newRequestId() {
         return UlidCreator.getMonotonicUlid().toLowerCase();
     }
 
+    /**
+     * Obtains the request id, if present, fromt the {@code trace-id}, {@code http.request.id}, or
+     * {@code x-request-id} request headers.
+     */
     public static Optional<String> findRequestId(Supplier<HttpHeaders> headers) {
         HttpHeaders httpHeaders = headers.get();
-        return header("traceId", httpHeaders)
+        return header("trace-id", httpHeaders)
                 .or(() -> header(REQUEST_ID_HEADER, httpHeaders))
-                .or(()->header("X-Request-ID", httpHeaders));
+                .or(() -> header("X-Request-ID", httpHeaders));
     }
-    
+
     private static Optional<String> header(String name, HttpHeaders headers) {
         return Optional.ofNullable(headers.get(name)).filter(l -> !l.isEmpty()).map(l -> l.get(0));
     }

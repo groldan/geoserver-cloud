@@ -40,24 +40,23 @@ import java.util.Optional;
 @ConditionalOnWebApplication(type = Type.SERVLET)
 public class LoggingMDCServletAutoConfiguration {
 
+    @Bean
+    MDCCleaningFilter mdcCleaningServletFilter() {
+        return new MDCCleaningFilter();
+    }
+
     /**
      * @return servlet filter to {@link MDC#clear() clear} the MDC after the servlet request is
      *     executed
      */
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Order(Ordered.HIGHEST_PRECEDENCE + 2)
     HttpRequestMdcFilter httpMdcFilter(MDCConfigProperties config) {
         return new HttpRequestMdcFilter(config.getHttp());
     }
 
     @Bean
-    @Order(Ordered.LOWEST_PRECEDENCE)
-    MDCCleaningFilter mdcCleaningServletFilter() {
-        return new MDCCleaningFilter();
-    }
-
-    @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Order(Ordered.HIGHEST_PRECEDENCE + 2)
     SpringEnvironmentMdcFilter springEnvironmentMdcFilter(
             Environment env,
             MDCConfigProperties config,

@@ -4,7 +4,8 @@
  */
 package org.geoserver.cloud.logging.accesslog;
 
-import java.net.URI;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.springframework.boot.web.reactive.filter.OrderedWebFilter;
 import org.springframework.core.Ordered;
@@ -13,9 +14,9 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
 
 @RequiredArgsConstructor
 public class AccessLogWebFilter implements OrderedWebFilter {

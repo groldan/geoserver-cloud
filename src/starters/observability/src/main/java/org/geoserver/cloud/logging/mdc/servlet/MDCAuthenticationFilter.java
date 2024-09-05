@@ -52,9 +52,9 @@ public class MDCAuthenticationFilter implements Filter {
     void addEnduserMdcProperties() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean authenticated;
-        if(auth == null || auth instanceof AnonymousAuthenticationToken) {
+        if (auth == null || auth instanceof AnonymousAuthenticationToken) {
             authenticated = false;
-        }else {
+        } else {
             authenticated = auth.isAuthenticated();
         }
         MDC.put("enduser.authenticated", String.valueOf(authenticated));

@@ -4,6 +4,13 @@
  */
 package org.geoserver.cloud.logging.accesslog;
 
+import lombok.NonNull;
+
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 import javax.servlet.FilterChain;
@@ -11,12 +18,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.web.filter.CommonsRequestLoggingFilter;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import lombok.NonNull;
-
 /** Similar to {@link CommonsRequestLoggingFilter} but uses slf4j */
+@Order(Ordered.HIGHEST_PRECEDENCE + 3)
 public class AccessLogServletFilter extends OncePerRequestFilter {
 
     private final @NonNull AccessLogFilterConfig config;
@@ -26,16 +29,19 @@ public class AccessLogServletFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-            try {
-                filterChain.doFilter(request, response);
-            }finally {
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            String uri = request.getRequestURI();
+            if (config.shouldLog(uri)) {
                 String method = request.getMethod();
                 int statusCode = response.getStatus();
-                String uri = request.getRequestURI();
                 config.log("{} {} {} ", method, statusCode, uri);
             }
+        }
     }
 }

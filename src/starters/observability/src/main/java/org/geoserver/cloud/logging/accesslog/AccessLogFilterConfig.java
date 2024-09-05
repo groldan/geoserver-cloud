@@ -19,8 +19,8 @@ import java.util.regex.Pattern;
  * will log an entry for it.
  */
 @Data
-@ConfigurationProperties(prefix = "geoserver.accesslog")
-@Slf4j(topic = "org.geoserver.accesslog")
+@ConfigurationProperties(prefix = "logging.accesslog")
+@Slf4j(topic = "org.geoserver.cloud.accesslog")
 public class AccessLogFilterConfig {
 
     /** Enable/disable the access log filter */
@@ -48,12 +48,11 @@ public class AccessLogFilterConfig {
     }
 
     public boolean shouldLog(String uri) {
-        if (!log.isDebugEnabled()) {
-            return false;
+        if (isEnabled() && log.isDebugEnabled()) {
+            if (include.isEmpty() && exclude.isEmpty()) return true;
+            return matches(uri, include, true) && !matches(uri, exclude, false);
         }
-        if (include.isEmpty() && exclude.isEmpty()) return true;
-
-        return matches(uri, include, true) && !matches(uri, exclude, false);
+        return false;
     }
 
     private boolean matches(String url, List<Pattern> patterns, boolean fallbackIfEmpty) {

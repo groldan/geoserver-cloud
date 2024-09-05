@@ -15,11 +15,15 @@ import org.springframework.core.env.Environment;
 @AutoConfiguration
 public class GatewayApplicationAutoconfiguration {
 
+    /**
+     * Global filtero to set the {@code http.request.id} header to be transmitted downstream to the
+     * proxied services.
+     */
     @Bean
     RequestIdGlobalFilter requestIdGlobalFilter() {
         return new RequestIdGlobalFilter();
     }
-    
+
     /**
      * Custom gateway predicate factory to support matching by regular expressions on both name and
      * value of query parameters

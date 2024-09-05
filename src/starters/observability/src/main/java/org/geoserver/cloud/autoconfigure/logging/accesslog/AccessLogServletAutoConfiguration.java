@@ -11,8 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 @AutoConfiguration
 @EnableConfigurationProperties(AccessLogFilterConfig.class)
@@ -20,7 +18,6 @@ import org.springframework.core.annotation.Order;
 public class AccessLogServletAutoConfiguration {
 
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
     AccessLogServletFilter accessLogFilter(AccessLogFilterConfig conf) {
         return new AccessLogServletFilter(conf);
     }
