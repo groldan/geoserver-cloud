@@ -32,9 +32,20 @@ public class AccessLogWebFilter implements OrderedWebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         if (config.shouldLog(exchange.getRequest().getURI())) {
             exchange.getResponse().beforeCommit(() -> logAfter(exchange));
+            return logBefore(exchange).then(chain.filter(exchange));
         }
 
         return chain.filter(exchange);
+    }
+
+    private Mono<Void> logBefore(ServerWebExchange exchange) {
+        return Mono.fromRunnable(
+                () -> {
+                    ServerHttpRequest request = exchange.getRequest();
+                    URI uri = request.getURI();
+                    String method = request.getMethodValue();
+                    config.log("{} {} ", method, uri);
+                });
     }
 
     /**

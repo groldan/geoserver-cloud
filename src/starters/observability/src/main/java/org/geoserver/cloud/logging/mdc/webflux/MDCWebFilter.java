@@ -43,6 +43,8 @@ public class MDCWebFilter implements OrderedWebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        MDC.clear();
+
         exchange.getResponse().beforeCommit(() -> log(exchange));
 
         return chain.filter(exchange);

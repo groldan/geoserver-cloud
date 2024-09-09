@@ -43,6 +43,7 @@ public class RequestIdGlobalFilter implements GlobalFilter, Ordered {
             requestId = HttpRequestMdcConfigProperties.newRequestId();
         } else {
             requestId = providedRequestId.orElseThrow();
+            exchange.getAttributes().put(REQUEST_ID_HEADER, requestId);
         }
         ServerHttpRequest request =
                 exchange.getRequest().mutate().header(REQUEST_ID_HEADER, requestId).build();
