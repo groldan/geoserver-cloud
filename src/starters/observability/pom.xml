@@ -10,11 +10,16 @@
   <packaging>jar</packaging>
   <description>Spring boot starter for application observability (logging,
 		metrics, tracing)</description>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-spring-boot-starter</artifactId>
     </dependency>
     <dependency>
       <groupId>com.github.f4b6a3</groupId>
