@@ -20,7 +20,7 @@ WORKDIR /opt/app/bin
 
 # default JVM parameters https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/envvars002.html
 # to add JVM parameters use the JAVA_OPTS env variable preferrably
-ENV JAVA_TOOL_OPTIONS="\
+ENV DEFAULT_JAVA_TOOL_OPTIONS="\
 --add-opens=java.base/java.lang=ALL-UNNAMED \
 --add-opens=java.base/java.util=ALL-UNNAMED \
 --add-opens=java.base/java.lang.reflect=ALL-UNNAMED \
@@ -31,6 +31,7 @@ ENV JAVA_TOOL_OPTIONS="\
 --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED \
 -Djava.awt.headless=true"
 
+ENV JAVA_TOOL_OPTIONS=${DEFAULT_JAVA_TOOL_OPTIONS}
 ENV JAVA_OPTS=
 EXPOSE 8080
 EXPOSE 8081
