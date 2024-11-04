@@ -37,6 +37,8 @@ spring:
       - org.springframework.boot.autoconfigure.freemarker.FreeMarkerAutoConfiguration
       - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
       - org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration
+      # Force disabling GWC UI, it's embedded in gwc-core, so can't have a ConditionalOnClass
+      - org.geoserver.cloud.autoconfigure.web.gwc.GeoWebCacheUIAutoConfiguration
       
 
 # override default of true, this service does not use the registry (when eureka client is enabled)

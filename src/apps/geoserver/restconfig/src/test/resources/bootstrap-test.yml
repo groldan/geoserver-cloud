@@ -9,6 +9,8 @@ spring:
   cloud.bus.enabled: false
 eureka.client.enabled: false
 
+gwc.cache-directory: ${java.io.tmpdir}/gs-rest-tmp
+
 geoserver:
   acl.enabled: false
   backend:

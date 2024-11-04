@@ -5,6 +5,7 @@
 package org.geoserver.cloud.autoconfigure.gwc;
 
 import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.lang.annotation.Documented;
@@ -27,6 +28,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @ConditionalOnGeoWebCacheEnabled
+@ConditionalOnClass(name = "org.gwc.web.rest.GeoWebCacheController")
 @ConditionalOnProperty(
         name = GeoWebCacheConfigurationProperties.WEBUI_ENABLED,
         havingValue = "true",
