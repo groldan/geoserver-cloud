@@ -64,7 +64,7 @@ public class PgconfigCatalogFacade extends RepositoryCatalogFacadeImpl {
 
     public static <T extends CatalogInfo> UnaryOperator<T> resolvingFunction(Supplier<Catalog> catalog) {
         return CatalogPropertyResolver.<T>of(catalog)
-                .andThen(ResolvingProxyResolver.<T>of(catalog))
+                .andThen(ResolvingProxyResolver.<T>silentOnNotFound(catalog))
                 .andThen(CollectionPropertiesInitializer.instance())::apply;
     }
 }

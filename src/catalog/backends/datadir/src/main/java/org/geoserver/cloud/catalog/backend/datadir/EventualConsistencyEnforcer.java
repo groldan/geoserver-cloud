@@ -313,7 +313,7 @@ public class EventualConsistencyEnforcer implements GeoServerLifecycleHandler {
 
         private <I extends CatalogInfo> Set<String> findMissingRefs(I info) {
             final Set<String> missing = new HashSet<>();
-            var lookup = ResolvingProxyResolver.<CatalogInfo>of(rawFacade.getCatalog());
+            var lookup = ResolvingProxyResolver.<CatalogInfo>silentOnNotFound(rawFacade.getCatalog());
             lookup.onNotFound((proxied, proxy) -> missing.add(proxy.getRef()));
             lookup.apply(info);
             return missing;
@@ -398,7 +398,7 @@ public class EventualConsistencyEnforcer implements GeoServerLifecycleHandler {
         }
 
         private Patch resolvePatch(Patch patch, Set<String> target) {
-            var lookup = ResolvingProxyResolver.<CatalogInfo>of(rawFacade.getCatalog());
+            var lookup = ResolvingProxyResolver.<CatalogInfo>silentOnNotFound(rawFacade.getCatalog());
             lookup.onNotFound((proxied, proxy) -> target.add(proxy.getRef()));
             return lookup.resolve(patch);
         }

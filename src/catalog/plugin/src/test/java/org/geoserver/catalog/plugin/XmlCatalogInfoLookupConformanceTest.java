@@ -39,7 +39,7 @@ class XmlCatalogInfoLookupConformanceTest extends CatalogConformanceTest {
         ResolvingCatalogFacadeDecorator resolving = new ResolvingCatalogFacadeDecorator(rawFacade);
 
         UnaryOperator<CatalogInfo> chainedResolver = CatalogPropertyResolver.<CatalogInfo>of(catalog) //
-                .andThen(ResolvingProxyResolver.of(catalog)) //
+                .andThen(ResolvingProxyResolver.silentOnNotFound(catalog)) //
                 .andThen(CollectionPropertiesInitializer.instance())::apply;
         resolving.setOutboundResolver(chainedResolver);
         catalog.setFacade(resolving);

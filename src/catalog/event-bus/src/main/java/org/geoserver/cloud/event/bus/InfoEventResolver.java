@@ -44,11 +44,10 @@ class InfoEventResolver {
                 "Event object contains a reference to a non existing object ResolvingProxy(ref={})", proxy.getRef());
 
         configInfoResolver = CollectionPropertiesInitializer.<Info>instance()
-                .andThen(ResolvingProxyResolver.<Info>of(rawCatalog).onNotFound(onNotFound))::apply;
+                .andThen(ResolvingProxyResolver.<Info>of(rawCatalog, onNotFound))::apply;
 
         var catalogResolver = CatalogPropertyResolver.<CatalogInfo>of(rawCatalog);
-        var resolvingProxyResolver =
-                ResolvingProxyResolver.<CatalogInfo>of(rawCatalog).onNotFound(onNotFound);
+        var resolvingProxyResolver = ResolvingProxyResolver.<CatalogInfo>of(rawCatalog, onNotFound);
         var collectionsInitializer = CollectionPropertiesInitializer.<CatalogInfo>instance();
 
         catalogInfoResolver = catalogResolver.andThen(collectionsInitializer).andThen(resolvingProxyResolver)::apply;

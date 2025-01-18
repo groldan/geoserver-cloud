@@ -44,6 +44,7 @@ import org.geoserver.config.SettingsInfo;
  * proxies and nested references recursively, with configurable behavior for unresolved proxies via a
  * {@link BiConsumer} callback. A memoizing variant is available via {@link #memoizing()} for efficient stream
  * processing.
+ * mechanism or is a purely in-memory catalog.
  *
  * <p>Key features:
  * <ul>
@@ -88,10 +89,7 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @throws NullPointerException if {@code catalog} is null.
      */
     private ResolvingProxyResolver(@NonNull Supplier<Catalog> catalog) {
-        this(
-                catalog,
-                (info, proxy) -> log.warn("ResolvingProxy object not found in catalog, keeping proxy around: %s"
-                        .formatted(info.getId())));
+        this(catalog, ResolvingProxyResolver::warnOnNotFound);
     }
 
     /**
@@ -108,6 +106,14 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
         this.catalog = catalog;
         this.onNotFound = onNotFound;
         this.proxyUtils = new ProxyUtils(catalog, Optional.empty());
+    }
+
+    private static void warnOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
+        log.warn("ResolvingProxy object not found in catalog, keeping proxy around: %s".formatted(info.getId()));
+    }
+
+    private static void failOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
+        throw new NoSuchElementException("Object not found: %s".formatted(info.getId()));
     }
 
     /**
@@ -147,12 +153,6 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
-    public static <I extends Info> ResolvingProxyResolver<I> of(Catalog catalog, boolean errorOnNotFound) {
-        if (errorOnNotFound)
-            return ResolvingProxyResolver.of(catalog, (proxiedInfo, proxy) -> {
-                throw new NoSuchElementException("Object not found: %s".formatted(proxiedInfo.getId()));
-            });
-        return ResolvingProxyResolver.of(catalog);
     }
 
     /**
@@ -163,7 +163,6 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
-    public static <I extends Info> ResolvingProxyResolver<I> of(Catalog catalog) {
         return new ResolvingProxyResolver<>(() -> catalog);
     }
 
@@ -175,7 +174,6 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
-    public static <I extends Info> ResolvingProxyResolver<I> of(Supplier<Catalog> catalog) {
         return new ResolvingProxyResolver<>(catalog);
     }
 

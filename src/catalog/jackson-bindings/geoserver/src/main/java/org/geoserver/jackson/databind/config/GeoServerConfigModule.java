@@ -102,6 +102,9 @@ public class GeoServerConfigModule extends SimpleModule {
         addSerializer(WMTSInfo.class);
         addDeserializer(WMTSInfo.class, Service.WmtsService.class);
 
+        addSerializer(Info.class);
+        addDeserializer(Info.class, InfoDto.class);
+
         registerValueSerializers();
     }
 
