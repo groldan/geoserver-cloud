@@ -32,6 +32,6 @@ public abstract class Published extends CatalogInfoDto {
     private boolean advertised;
     private List<AuthorityURL> authorityURLs;
     private List<LayerIdentifier> identifiers;
-    private Attribution attribution;
+    private AttributionInfoDto attribution;
     private MetadataMapDto metadata;
 }

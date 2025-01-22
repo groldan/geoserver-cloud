@@ -19,10 +19,16 @@ import org.yaml.snakeyaml.DumperOptions.Version;
 @UtilityClass
 public class ObjectMapperUtil {
 
+    /**
+     * @return JSON object mapper
+     */
     public static ObjectMapper newObjectMapper() {
         return newObjectMapper(null);
     }
 
+    /**
+     * @return YAML 1.1 object mapper
+     */
     public static ObjectMapper newYAMLObjectMapper() {
         YAMLFactory yamlFactory = YAMLFactory.builder() //
                 .yamlVersionToWrite(Version.V1_1) //
@@ -33,7 +39,7 @@ public class ObjectMapperUtil {
         return newObjectMapper(yamlFactory);
     }
 
-    public static ObjectMapper newObjectMapper(JsonFactory jsonFactory) {
+    static ObjectMapper newObjectMapper(JsonFactory jsonFactory) {
         ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
         objectMapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
         objectMapper.disable(JsonGenerator.Feature.WRITE_BIGDECIMAL_AS_PLAIN);

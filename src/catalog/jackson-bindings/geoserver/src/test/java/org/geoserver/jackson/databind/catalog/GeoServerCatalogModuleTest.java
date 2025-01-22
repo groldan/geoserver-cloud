@@ -9,7 +9,6 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,13 +49,12 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.impl.AttributionInfoImpl;
 import org.geoserver.catalog.impl.AuthorityURL;
+import org.geoserver.catalog.impl.CatalogImpl;
 import org.geoserver.catalog.impl.ClassMappings;
 import org.geoserver.catalog.impl.LayerGroupStyle;
 import org.geoserver.catalog.impl.LayerGroupStyleImpl;
 import org.geoserver.catalog.impl.LegendInfoImpl;
 import org.geoserver.catalog.impl.ModificationProxy;
-import org.geoserver.catalog.plugin.CatalogPlugin;
-import org.geoserver.catalog.plugin.Query;
 import org.geoserver.catalog.plugin.resolving.ProxyUtils;
 import org.geoserver.cog.CogSettings.RangeReaderType;
 import org.geoserver.cog.CogSettingsStore;
@@ -72,7 +70,6 @@ import org.geotools.api.filter.FilterFactory;
 import org.geotools.api.filter.PropertyIsEqualTo;
 import org.geotools.api.filter.expression.Expression;
 import org.geotools.api.filter.expression.Literal;
-import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -81,6 +78,7 @@ import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.jackson.databind.util.ObjectMapperUtil;
 import org.geotools.jdbc.VirtualTable;
 import org.geotools.measure.Measure;
 import org.geotools.referencing.CRS;
@@ -93,16 +91,16 @@ import si.uom.SI;
 
 /**
  * Verifies that all {@link CatalogInfo} can be sent over the wire and parsed back using jackson,
- * thanks to {@link GeoServerCatalogModule} jackcon-databind module
+ * thanks to {@link GeoServerCatalogModule} jackson-databind module
  */
 @Slf4j
-public abstract class GeoServerCatalogModuleTest {
+class GeoServerCatalogModuleTest {
 
     private FilterFactory ff = CommonFactoryFinder.getFilterFactory();
 
     protected void print(String logmsg, Object... args) {
         boolean debug = Boolean.getBoolean("debug");
-        if (debug) log.info(logmsg, args);
+        if (debug || true) log.info(logmsg, args);
     }
 
     private ObjectMapper objectMapper;
@@ -112,22 +110,28 @@ public abstract class GeoServerCatalogModuleTest {
     private GeoServer geoserver;
     private ProxyUtils proxyResolver;
 
-    public static @BeforeAll void oneTimeSetup() {
-        // avoid the chatty warning logs due to catalog looking up a bean of type
-        // GeoServerConfigurationLock
+    @BeforeAll
+    static void oneTimeSetup() {
+        // avoid the chatty warning logs due to catalog looking up a bean of type GeoServerConfigurationLock
         GeoServerExtensionsHelper.setIsSpringContext(false);
     }
 
-    public @BeforeEach void before() {
-        objectMapper = newObjectMapper();
-        catalog = new CatalogPlugin();
+    @BeforeEach
+    void before() {
+        this.objectMapper = newObjectMapper();
+        catalog = new CatalogImpl();
         geoserver = new GeoServerImpl();
         geoserver.setCatalog(catalog);
         data = CatalogTestData.initialized(() -> catalog, () -> geoserver).initialize();
         proxyResolver = new ProxyUtils(() -> catalog, Optional.of(geoserver));
     }
 
-    protected abstract ObjectMapper newObjectMapper();
+    /**
+     * Override if testing a different object mapper (e.g. for YAML)
+     */
+    protected ObjectMapper newObjectMapper() {
+        return ObjectMapperUtil.newObjectMapper();
+    }
 
     @SuppressWarnings("unchecked")
     private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig) throws JsonProcessingException {
@@ -257,7 +261,7 @@ public abstract class GeoServerCatalogModuleTest {
         builder.add("doublea", double[].class);
         builder.add("stringa", String[].class);
         ft = builder.buildFeatureType();
-        return new CatalogBuilder(new CatalogPlugin()).getAttributes(ft, info);
+        return new CatalogBuilder(new CatalogImpl()).getAttributes(ft, info);
     }
 
     @Test
@@ -651,56 +655,5 @@ public abstract class GeoServerCatalogModuleTest {
         assertEquals(mdm, decoded);
         decoded = testFilterLiteral(mdm, Map.class);
         assertEquals(mdm, decoded);
-    }
-
-    @Test
-    void testQuery() {
-        Arrays.stream(ClassMappings.values())
-                .map(ClassMappings::getInterface)
-                .filter(CatalogInfo.class::isAssignableFrom)
-                .forEach(this::testQuery);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void testQuery(Class<?> clazz) {
-        Class<? extends CatalogInfo> type = (Class<? extends CatalogInfo>) clazz;
-        try {
-            Query<?> query = Query.all(type);
-            Query<?> parsed = testValue(query, Query.class);
-            assertNotNull(parsed);
-            assertQueryEquals(query, parsed);
-            Filter filter = equals("some.property.name", Arrays.asList("some literal 1", "some literal 2"));
-            query = Query.valueOf(
-                    type,
-                    filter,
-                    2000,
-                    1000,
-                    ff.sort("name", SortOrder.ASCENDING),
-                    ff.sort("type", SortOrder.DESCENDING));
-            parsed = testValue(query, Query.class);
-            assertNotNull(parsed);
-            assertQueryEquals(query, parsed);
-        } catch (Exception e) {
-            fail(e);
-        }
-    }
-
-    // needed instead of Query.equals(query), no equals() implementation in
-    // org.geotools.filter.SortByImpl nor Filter...
-    private void assertQueryEquals(Query<?> query, Query<?> parsed) {
-        assertEquals(query.getType(), parsed.getType());
-        assertEquals(query.getCount(), parsed.getCount());
-        assertEquals(query.getOffset(), parsed.getOffset());
-
-        Filter f1 = query.getFilter();
-        Filter f2 = parsed.getFilter();
-        if (f1 == Filter.INCLUDE) assertEquals(Filter.INCLUDE, f2);
-        else {
-            PropertyIsEqualTo p1 = (PropertyIsEqualTo) f1;
-            PropertyIsEqualTo p2 = (PropertyIsEqualTo) f2;
-            assertEquals(p1.getExpression1(), p2.getExpression1());
-            assertEquals(p1.getExpression2(), p2.getExpression2());
-        }
-        assertEquals(query.getSortBy(), parsed.getSortBy());
     }
 }

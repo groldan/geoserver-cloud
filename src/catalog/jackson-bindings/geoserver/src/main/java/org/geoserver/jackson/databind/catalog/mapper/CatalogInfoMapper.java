@@ -28,13 +28,13 @@ import org.mapstruct.factory.Mappers;
 @Mapper(config = CatalogInfoMapperConfig.class)
 @AnnotateWith(value = Generated.class)
 public interface CatalogInfoMapper {
-    public static final MapMapper MAP_MAPPER = Mappers.getMapper(MapMapper.class);
-    public static final StyleMapper STYLE_MAPPER = Mappers.getMapper(StyleMapper.class);
-    public static final PublishedMapper PUBLISHED_MAPPER = Mappers.getMapper(PublishedMapper.class);
-    public static final ResourceMapper RESOURCE_MAPPER = Mappers.getMapper(ResourceMapper.class);
-    public static final StoreMapper STORE_MAPPER = Mappers.getMapper(StoreMapper.class);
-    public static final NamespaceMapper NAMESPACE_MAPPER = Mappers.getMapper(NamespaceMapper.class);
-    public static final WorkspaceMapper WORKSPACE_MAPPER = Mappers.getMapper(WorkspaceMapper.class);
+    public static final MapInfoMapper MAP_MAPPER = Mappers.getMapper(MapInfoMapper.class);
+    public static final StyleInfoMapper STYLE_MAPPER = Mappers.getMapper(StyleInfoMapper.class);
+    public static final PublishedInfoMapper PUBLISHED_MAPPER = Mappers.getMapper(PublishedInfoMapper.class);
+    public static final ResourceInfoMapper RESOURCE_MAPPER = Mappers.getMapper(ResourceInfoMapper.class);
+    public static final StoreInfoMapper STORE_MAPPER = Mappers.getMapper(StoreInfoMapper.class);
+    public static final NamespaceInfoMapper NAMESPACE_MAPPER = Mappers.getMapper(NamespaceInfoMapper.class);
+    public static final WorkspaceInfoMapper WORKSPACE_MAPPER = Mappers.getMapper(WorkspaceInfoMapper.class);
 
     @SuppressWarnings("unchecked")
     default <I extends CatalogInfo> I map(CatalogInfoDto dto) {

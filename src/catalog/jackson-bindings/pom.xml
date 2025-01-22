@@ -13,6 +13,7 @@
   <modules>
     <module>geotools</module>
     <module>geoserver</module>
+    <module>geoserver-cloud</module>
     <module>starter</module>
   </modules>
 </project>

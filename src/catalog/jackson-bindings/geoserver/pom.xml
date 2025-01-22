@@ -24,12 +24,24 @@
       <artifactId>jackson-dataformat-yaml</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.geoserver.cloud.catalog</groupId>
-      <artifactId>gs-cloud-catalog-plugin</artifactId>
+      <groupId>org.geoserver</groupId>
+      <artifactId>gs-main</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver</groupId>
-      <artifactId>gs-main</artifactId>
+      <artifactId>gs-wfs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver</groupId>
+      <artifactId>gs-wcs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.extension</groupId>
+      <artifactId>gs-wps-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver</groupId>
+      <artifactId>gs-gwc</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.community</groupId>
@@ -40,8 +52,18 @@
       <artifactId>spring-boot-starter-json</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.mapstruct</groupId>
       <artifactId>mapstruct</artifactId>
+    </dependency>
+    <dependency>
+      <!-- only used in tests to access org.geoserver.catalog.plugin.resolving.ProxyUtils -->
+      <groupId>org.geoserver.cloud.catalog</groupId>
+      <artifactId>gs-cloud-catalog-plugin</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <!-- contains CatalogTestData support class -->

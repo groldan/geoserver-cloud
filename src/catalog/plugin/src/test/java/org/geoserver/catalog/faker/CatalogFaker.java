@@ -574,6 +574,8 @@ public class CatalogFaker {
         attinfo.setLogoWidth(faker.number().numberBetween(128, 512));
         attinfo.setLogoHeight(faker.number().numberBetween(128, 512));
         attinfo.setTitle(faker.company().bs());
+        attinfo.setLogoType("test-type");
+        attinfo.setLogoURL(faker.internet().url());
         return attinfo;
     }
 

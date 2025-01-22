@@ -29,7 +29,7 @@
     <dependency>
       <!-- ability to encode RemoteInfoEvent payloads as JSON -->
       <groupId>org.geoserver.cloud.catalog.jackson</groupId>
-      <artifactId>gs-jackson-bindings</artifactId>
+      <artifactId>gs-cloud-starter-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud.catalog</groupId>

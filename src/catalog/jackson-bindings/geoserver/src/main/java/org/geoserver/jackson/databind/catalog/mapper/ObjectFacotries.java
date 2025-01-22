@@ -54,17 +54,19 @@ import org.geoserver.catalog.impl.WMSStoreInfoImpl;
 import org.geoserver.catalog.impl.WMTSLayerInfoImpl;
 import org.geoserver.catalog.impl.WMTSStoreInfoImpl;
 import org.geoserver.catalog.impl.WorkspaceInfoImpl;
+import org.geoserver.jackson.databind.catalog.dto.AttributionInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Coverage;
 import org.geoserver.jackson.databind.catalog.dto.CoverageDimension;
 import org.geoserver.jackson.databind.catalog.dto.CoverageStore;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.DataStore;
 import org.geoserver.jackson.databind.catalog.dto.FeatureType;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
 import org.geoserver.jackson.databind.catalog.dto.Layer;
 import org.geoserver.jackson.databind.catalog.dto.LayerGroup;
-import org.geoserver.jackson.databind.catalog.dto.Legend;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Map;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Namespace;
 import org.geoserver.jackson.databind.catalog.dto.Style;
 import org.geoserver.jackson.databind.catalog.dto.WMSLayer;
@@ -132,7 +134,7 @@ public class ObjectFacotries {
     }
 
     public @ObjectFactory LayerGroupStyle layerGroupStyle( //
-            org.geoserver.jackson.databind.catalog.dto.LayerGroupStyle source, //
+            org.geoserver.jackson.databind.catalog.dto.LayerGroupStyleDto source, //
             @TargetType Class<LayerGroupStyle> type) {
 
         return create(source.getId(), LayerGroupStyleImpl::new);
@@ -152,24 +154,28 @@ public class ObjectFacotries {
         return info;
     }
 
-    public @ObjectFactory LegendInfo legendInfo(Legend source) {
+    public @ObjectFactory LegendInfo legendInfo(LegendInfoDto source) {
         LegendInfoImpl l = new LegendInfoImpl();
         l.setId(source.getId());
         return l;
     }
 
-    public @ObjectFactory MetadataLinkInfo metadataLinkInfo(MetadataLink source) {
+    public @ObjectFactory MetadataLinkInfo metadataLinkInfo(MetadataLinkInfoDto source) {
         MetadataLinkInfoImpl l = new MetadataLinkInfoImpl();
         l.setId(source.getId());
         return l;
     }
 
-    public @ObjectFactory DataLinkInfo dataLinkInfo() {
-        return new DataLinkInfoImpl();
+    public @ObjectFactory DataLinkInfo dataLinkInfo(DataLinkInfoDto dto) {
+        DataLinkInfoImpl d = new DataLinkInfoImpl();
+        d.setId(dto.getId());
+        return d;
     }
 
-    public @ObjectFactory AttributionInfo attributionInfo() {
-        return new AttributionInfoImpl();
+    public @ObjectFactory AttributionInfo attributionInfo(AttributionInfoDto dto) {
+        AttributionInfoImpl att = new AttributionInfoImpl();
+        att.setId(dto.getId());
+        return att;
     }
 
     public @ObjectFactory AttributeTypeInfo attributeTypeInfo() {
@@ -188,10 +194,6 @@ public class ObjectFacotries {
 
     public @ObjectFactory KeywordInfo keywordInfo(Keyword source) {
         return new org.geoserver.catalog.Keyword(source.getValue());
-    }
-
-    public @ObjectFactory MetadataLinkInfoImpl metadataLinkInfo() {
-        return new MetadataLinkInfoImpl();
     }
 
     public @ObjectFactory AuthorityURLInfo authorityURLInfo() {

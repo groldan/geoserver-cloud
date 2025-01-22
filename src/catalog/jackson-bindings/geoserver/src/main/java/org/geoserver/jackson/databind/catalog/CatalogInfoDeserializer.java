@@ -13,7 +13,7 @@ import org.geoserver.jackson.databind.catalog.dto.CatalogInfoDto;
 import org.geoserver.jackson.databind.catalog.mapper.CatalogInfoMapper;
 import org.mapstruct.factory.Mappers;
 
-public class CatalogInfoDeserializer<I extends CatalogInfo> extends JsonDeserializer<I> {
+class CatalogInfoDeserializer<I extends CatalogInfo> extends JsonDeserializer<I> {
 
     private static final CatalogInfoMapper mapper = Mappers.getMapper(CatalogInfoMapper.class);
 

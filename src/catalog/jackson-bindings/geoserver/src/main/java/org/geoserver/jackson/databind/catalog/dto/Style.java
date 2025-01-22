@@ -21,6 +21,6 @@ public class Style extends CatalogInfoDto {
     private String format;
     private VersionDto formatVersion;
     private String filename;
-    private Legend legend;
+    private LegendInfoDto legend;
     private MetadataMapDto metadata;
 }

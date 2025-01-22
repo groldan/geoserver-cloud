@@ -23,17 +23,24 @@ import org.geoserver.config.SettingsInfo;
 import org.geoserver.config.impl.ServiceInfoImpl;
 import org.geoserver.gwc.wmts.WMTSInfo;
 import org.geoserver.gwc.wmts.WMTSInfoImpl;
+import org.geoserver.jackson.databind.catalog.dto.AttributionInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.CatalogInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.InfoDto;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.mapper.CatalogInfoMapper;
+import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
 import org.geoserver.jackson.databind.config.dto.CogSettingsDto;
 import org.geoserver.jackson.databind.config.dto.CogSettingsStoreDto;
 import org.geoserver.jackson.databind.config.dto.ConfigInfoDto;
-import org.geoserver.jackson.databind.config.dto.Contact;
+import org.geoserver.jackson.databind.config.dto.ContactInfoDto;
 import org.geoserver.jackson.databind.config.dto.CoverageAccess;
 import org.geoserver.jackson.databind.config.dto.GeoServer;
 import org.geoserver.jackson.databind.config.dto.JaiDto;
 import org.geoserver.jackson.databind.config.dto.Logging;
+import org.geoserver.jackson.databind.config.dto.ProcessGroupInfoDto;
+import org.geoserver.jackson.databind.config.dto.ProcessInfoDto;
 import org.geoserver.jackson.databind.config.dto.Service;
 import org.geoserver.jackson.databind.config.dto.Settings;
 import org.geoserver.wcs.WCSInfo;
@@ -42,6 +49,8 @@ import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.WFSInfoImpl;
 import org.geoserver.wms.WMSInfo;
 import org.geoserver.wms.WMSInfoImpl;
+import org.geoserver.wps.ProcessGroupInfo;
+import org.geoserver.wps.ProcessInfo;
 import org.geoserver.wps.WPSInfo;
 import org.geoserver.wps.WPSInfoImpl;
 import org.geotools.util.Version;
@@ -50,17 +59,36 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-/** Mapper to/from GeoServer config objects and their respective DTO representations */
+/**
+ * Mapper to/from GeoServer config objects and their respective DTO
+ * representations
+ */
 @Mapper(config = ConfigInfoMapperConfig.class)
 @AnnotateWith(value = Generated.class)
 public interface GeoServerConfigMapper {
 
     CatalogInfoMapper catalogInfoMapper = Mappers.getMapper(CatalogInfoMapper.class);
+    GeoServerValueObjectsMapper VALUE_MAPPER = Mappers.getMapper(GeoServerValueObjectsMapper.class);
 
+    @SuppressWarnings("unchecked")
     default <T extends Info> T toInfo(InfoDto dto) {
         if (dto == null) return null;
         if (dto instanceof ConfigInfoDto configInfo) return toInfo(configInfo);
         if (dto instanceof CatalogInfoDto catalogInfo) return catalogInfoMapper.map(catalogInfo);
+
+        // handle other Info types that are not root config objects but value objects
+        if (dto instanceof ContactInfoDto c) return (T) contactInfo(c);
+        if (dto instanceof AttributionInfoDto a) return (T) VALUE_MAPPER.dtoToAttributionInfo(a);
+        if (dto instanceof DataLinkInfoDto d) return (T) VALUE_MAPPER.dtoToDataLinkInfo(d);
+        if (dto instanceof LegendInfoDto l) return (T) VALUE_MAPPER.dtoToLegendInfo(l);
+        if (dto instanceof MetadataLinkInfoDto m) return (T) VALUE_MAPPER.dtoToMetadataLinkInfo(m);
+
+        if (dto instanceof ProcessGroupInfoDto p)
+            return (T) Mappers.getMapper(WPSMapper.class).map(p);
+
+        if (dto instanceof ProcessInfoDto p)
+            return (T) Mappers.getMapper(WPSMapper.class).map(p);
+
         throw new IllegalArgumentException(
                 "Unknown config DTO type: " + dto.getClass().getCanonicalName());
     }
@@ -73,6 +101,23 @@ public interface GeoServerConfigMapper {
         if (info instanceof LoggingInfo logging) return (T) toDto(logging);
         if (info instanceof ServiceInfo service) return (T) toDto(service);
         if (info instanceof CatalogInfo catInfo) return (T) catalogInfoMapper.map(catInfo);
+
+        // handle other Info types that are not root config objects but value objects
+        if (info instanceof ContactInfo c) return (T) contactInfo(c);
+
+        if (info instanceof org.geoserver.catalog.AttributionInfo a) return (T) VALUE_MAPPER.attributionInfoToDto(a);
+
+        if (info instanceof org.geoserver.catalog.DataLinkInfo d) return (T) VALUE_MAPPER.dataLinkInfoToDto(d);
+
+        if (info instanceof org.geoserver.catalog.LegendInfo l) return (T) VALUE_MAPPER.legendInfoToDto(l);
+
+        if (info instanceof org.geoserver.catalog.MetadataLinkInfo m) return (T) VALUE_MAPPER.metadataLinkInfoToDto(m);
+
+        if (info instanceof ProcessGroupInfo p)
+            return (T) Mappers.getMapper(WPSMapper.class).map(p);
+
+        if (info instanceof ProcessInfo p)
+            return (T) Mappers.getMapper(WPSMapper.class).map(p);
 
         throw new IllegalArgumentException(
                 "Unknown config info type: " + info.getClass().getCanonicalName());
@@ -119,9 +164,9 @@ public interface GeoServerConfigMapper {
     CoverageAccess coverageAccessInfo(CoverageAccessInfo info);
 
     @Mapping(target = "id", ignore = true) // set by factory method
-    ContactInfo contactInfo(Contact dto);
+    ContactInfo contactInfo(ContactInfoDto dto);
 
-    Contact contactInfo(ContactInfo info);
+    ContactInfoDto contactInfo(ContactInfo info);
 
     default ServiceInfo toInfo(Service dto) {
         if (dto == null) return null;
@@ -150,8 +195,8 @@ public interface GeoServerConfigMapper {
     }
 
     /**
-     * {@link ServiceInfo#getVersions()} does not parameterize the list, hence Mapstruct assigns the
-     * {@code List<String>} as is
+     * {@link ServiceInfo#getVersions()} does not parameterize the list, hence
+     * Mapstruct assigns the {@code List<String>} as is
      */
     default List<org.geotools.util.Version> stringListToVersionList(List<String> list) {
         return list == null ? null : list.stream().map(Version::new).collect(toCollection(ArrayList::new));

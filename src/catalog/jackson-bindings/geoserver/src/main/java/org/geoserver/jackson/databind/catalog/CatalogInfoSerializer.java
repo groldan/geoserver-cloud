@@ -16,7 +16,7 @@ import org.geoserver.jackson.databind.catalog.dto.CatalogInfoDto;
 import org.geoserver.jackson.databind.catalog.mapper.CatalogInfoMapper;
 import org.mapstruct.factory.Mappers;
 
-public class CatalogInfoSerializer<I extends CatalogInfo> extends StdSerializer<I> {
+class CatalogInfoSerializer<I extends CatalogInfo> extends StdSerializer<I> {
     private static final long serialVersionUID = -4772839273787523779L;
 
     private static final CatalogInfoMapper mapper = Mappers.getMapper(CatalogInfoMapper.class);

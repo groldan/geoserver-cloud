@@ -6,6 +6,7 @@ package org.geoserver.cloud.autoconfigure.jackson;
 
 import com.fasterxml.jackson.databind.Module;
 import org.geoserver.jackson.databind.catalog.GeoServerCatalogModule;
+import org.geoserver.jackson.databind.catalog.GeoServerCloudCatalogModule;
 import org.geoserver.jackson.databind.config.GeoServerConfigModule;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -28,15 +29,21 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnClass(GeoServerCatalogModule.class)
 public class GeoServerJacksonBindingsAutoConfiguration {
 
-    @ConditionalOnMissingBean(GeoServerCatalogModule.class)
     @Bean
+    @ConditionalOnMissingBean(GeoServerCatalogModule.class)
     GeoServerCatalogModule geoServerCatalogJacksonModule() {
         return new GeoServerCatalogModule();
     }
 
-    @ConditionalOnMissingBean(GeoServerConfigModule.class)
     @Bean
+    @ConditionalOnMissingBean(GeoServerConfigModule.class)
     GeoServerConfigModule geoServerConfigJacksonModule() {
         return new GeoServerConfigModule();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(GeoServerCloudCatalogModule.class)
+    GeoServerCloudCatalogModule geoServerCloudCatalogJacksonModule() {
+        return new GeoServerCloudCatalogModule();
     }
 }

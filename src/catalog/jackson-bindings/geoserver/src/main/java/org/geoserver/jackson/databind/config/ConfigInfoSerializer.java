@@ -10,8 +10,8 @@ import org.geoserver.jackson.databind.config.dto.mapper.GeoServerConfigMapper;
 import org.geotools.jackson.databind.util.MapperSerializer;
 import org.mapstruct.factory.Mappers;
 
+@SuppressWarnings("serial")
 public class ConfigInfoSerializer<T extends Info> extends MapperSerializer<T, ConfigInfoDto> {
-    private static final long serialVersionUID = -4772839273787523779L;
 
     private static final GeoServerConfigMapper mapper = Mappers.getMapper(GeoServerConfigMapper.class);
 

@@ -20,21 +20,19 @@ import org.geoserver.catalog.LayerIdentifierInfo;
 import org.geoserver.catalog.LegendInfo;
 import org.geoserver.catalog.MetadataLinkInfo;
 import org.geoserver.catalog.MetadataMap;
-import org.geoserver.catalog.plugin.Query;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.jackson.databind.catalog.dto.AttributeType;
-import org.geoserver.jackson.databind.catalog.dto.Attribution;
+import org.geoserver.jackson.databind.catalog.dto.AttributionInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.AuthorityURL;
 import org.geoserver.jackson.databind.catalog.dto.CoverageDimension;
-import org.geoserver.jackson.databind.catalog.dto.DataLink;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Dimension;
 import org.geoserver.jackson.databind.catalog.dto.GridGeometryDto;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
 import org.geoserver.jackson.databind.catalog.dto.LayerIdentifier;
-import org.geoserver.jackson.databind.catalog.dto.Legend;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
-import org.geoserver.jackson.databind.catalog.dto.QueryDto;
 import org.geoserver.jackson.databind.catalog.dto.VirtualTableDto;
 import org.geoserver.jackson.databind.mapper.InfoReferenceMapper;
 import org.geoserver.wfs.GMLInfo;
@@ -63,13 +61,6 @@ import org.mapstruct.factory.Mappers;
         uses = {GeoToolsValueMappers.class, ObjectFacotries.class, InfoReferenceMapper.class})
 @AnnotateWith(value = Generated.class)
 public interface GeoServerValueObjectsMapper {
-
-    @Mapping(target = "withFilter", ignore = true)
-    @SuppressWarnings("rawtypes")
-    Query dtoToQuery(QueryDto dto);
-
-    QueryDto queryToDto(@SuppressWarnings("rawtypes") Query query);
-
     /**
      * @see XStreamPersister#GridGeometry2DConverter
      */
@@ -122,22 +113,22 @@ public interface GeoServerValueObjectsMapper {
         return new AffineTransform2D(affineTransform);
     }
 
-    AttributeType infoToDto(AttributeTypeInfo o);
+    AttributeType attributeTypeInfoToDto(AttributeTypeInfo o);
 
     @Mapping(target = "attribute", ignore = true)
-    AttributeTypeInfo dtoToInfo(AttributeType o);
+    AttributeTypeInfo dtoToAttributeTypeInfo(AttributeType o);
 
-    Attribution infoToDto(AttributionInfo info);
+    AttributionInfoDto attributionInfoToDto(AttributionInfo info);
 
-    AttributionInfo dtoToInfo(Attribution dto);
+    AttributionInfo dtoToAttributionInfo(AttributionInfoDto dto);
 
-    AuthorityURL infoToDto(AuthorityURLInfo info);
+    AuthorityURL authorityURLInfoToDto(AuthorityURLInfo info);
 
-    AuthorityURLInfo dtoToInfo(AuthorityURL authorityURL);
+    AuthorityURLInfo dtoToAuthorityURLInfo(AuthorityURL authorityURL);
 
-    CoverageDimension infoToDto(CoverageDimensionInfo info);
+    CoverageDimension coverageDimensionInfoToDto(CoverageDimensionInfo info);
 
-    CoverageDimensionInfo dtoToInfo(CoverageDimension info);
+    CoverageDimensionInfo dtoToCoverageDimensionInfo(CoverageDimension info);
 
     default SampleDimensionType stringToSampleDimensionType(String value) {
         return value == null ? null : SampleDimensionType.valueOf(value);
@@ -150,26 +141,26 @@ public interface GeoServerValueObjectsMapper {
     /** Stored in {@link FeatureTypeInfo#getMetadata()} */
     @Mapping(target = "defaultValueStrategy", source = "defaultValue.strategyType")
     @Mapping(target = "defaultValueReferenceValue", source = "defaultValue.referenceValue")
-    Dimension infoToDto(DimensionInfo info);
+    Dimension dimensionInfoToDto(DimensionInfo info);
 
     @InheritInverseConfiguration
-    DimensionInfo dtoToInfo(Dimension info);
+    DimensionInfo dtoToDimensionInfo(Dimension info);
 
-    DataLink infoToDto(DataLinkInfo info);
+    DataLinkInfoDto dataLinkInfoToDto(DataLinkInfo info);
 
-    DataLinkInfo dtoToInfo(DataLink dto);
+    DataLinkInfo dtoToDataLinkInfo(DataLinkInfoDto dto);
 
-    LayerIdentifier infoToDto(LayerIdentifierInfo info);
+    LayerIdentifier layerIdentifierInfoToDto(LayerIdentifierInfo info);
 
-    LayerIdentifierInfo dtoToInfo(LayerIdentifier dto);
+    LayerIdentifierInfo dtoToLayerIdentifierInfo(LayerIdentifier dto);
 
-    Legend infoToDto(LegendInfo info);
+    LegendInfoDto legendInfoToDto(LegendInfo info);
 
-    LegendInfo dtoToInfo(Legend info);
+    LegendInfo dtoToLegendInfo(LegendInfoDto info);
 
-    MetadataLink infoToDto(MetadataLinkInfo info);
+    MetadataLinkInfoDto metadataLinkInfoToDto(MetadataLinkInfo info);
 
-    MetadataLinkInfo dtoToInfo(MetadataLink dto);
+    MetadataLinkInfo dtoToMetadataLinkInfo(MetadataLinkInfoDto dto);
 
     VirtualTableDto virtualTableToDto(VirtualTable value);
 
@@ -178,7 +169,7 @@ public interface GeoServerValueObjectsMapper {
         return new VirtualTable(dto.getName(), dto.getSql(), dto.isEscapeSql());
     }
 
-    default MetadataMapDto metadataMap(MetadataMap md) {
+    default MetadataMapDto metadataMapToDto(MetadataMap md) {
         if (md == null) return null;
         MetadataMapDto dto = new MetadataMapDto();
         md.forEach((k, v) -> {
@@ -188,7 +179,7 @@ public interface GeoServerValueObjectsMapper {
         return dto;
     }
 
-    default MetadataMap metadataMap(MetadataMapDto dto) {
+    default MetadataMap dtoToMetadataMap(MetadataMapDto dto) {
         if (dto == null) return null;
         MetadataMap md = new MetadataMap();
         dto.forEach((k, l) -> {

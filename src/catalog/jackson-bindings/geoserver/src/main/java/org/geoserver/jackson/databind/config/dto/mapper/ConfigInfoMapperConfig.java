@@ -6,7 +6,6 @@ package org.geoserver.jackson.databind.config.dto.mapper;
 
 import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
 import org.geoserver.jackson.databind.mapper.InfoReferenceMapper;
-import org.geoserver.jackson.databind.mapper.PatchMapper;
 import org.geotools.jackson.databind.filter.mapper.GeoToolsValueMappers;
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;
@@ -19,7 +18,6 @@ import org.mapstruct.ReportingPolicy;
             WPSMapper.class,
             GeoToolsValueMappers.class,
             GeoServerValueObjectsMapper.class,
-            InfoReferenceMapper.class,
-            PatchMapper.class
+            InfoReferenceMapper.class
         })
 public class ConfigInfoMapperConfig {}

@@ -20,7 +20,7 @@ import org.geoserver.catalog.impl.LayerIdentifier;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.gwc.wmts.WMTSInfo;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 import org.geoserver.security.CatalogMode;
 import org.geoserver.wfs.GMLInfoImpl;
@@ -28,10 +28,7 @@ import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wfs.WFSInfo.Version;
 import org.geoserver.wms.CacheConfiguration;
 import org.geoserver.wms.WatermarkInfoImpl;
-import org.geoserver.wps.ProcessGroupInfo;
-import org.geoserver.wps.ProcessInfo;
 import org.geotools.coverage.grid.io.OverviewPolicy;
-import org.geotools.jackson.databind.dto.NameDto;
 
 /** DTO for {@link ServiceInfo} */
 @Data
@@ -59,7 +56,7 @@ public abstract class Service extends ConfigInfoDto {
     private List<String> versions;
     private List<Keyword> keywords;
     private List<String> exceptionFormats;
-    private MetadataLink metadataLink;
+    private MetadataLinkInfoDto metadataLink;
     private String outputStrategy;
     private String schemaBaseURL;
     private boolean verbose;
@@ -212,7 +209,7 @@ public abstract class Service extends ConfigInfoDto {
         private int resourceExpirationTimeout;
         private int maxSynchronousProcesses;
         private int maxAsynchronousProcesses;
-        private List<ProcessGroup> processGroups;
+        private List<ProcessGroupInfoDto> processGroups;
         private String storageDirectory;
         private CatalogMode catalogMode;
         private int maxComplexInputSize;
@@ -223,25 +220,6 @@ public abstract class Service extends ConfigInfoDto {
 
         private String externalOutputDirectory;
         private boolean remoteInputDisabled;
-
-        /** DTO for {@link ProcessGroupInfo} */
-        @Data
-        public static class ProcessGroup {
-            private String factoryClass;
-            private boolean isEnabled;
-            private List<WpsService.Process> filteredProcesses;
-            private MetadataMapDto metadata;
-            private List<String> roles;
-        }
-
-        /** DTO for {@link ProcessInfo} */
-        @Data
-        public static class Process {
-            private NameDto name;
-            private boolean enabled;
-            private List<String> roles;
-            private MetadataMapDto metadata;
-        }
     }
 
     /** DTO for {@link WMTSInfo} */

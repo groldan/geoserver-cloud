@@ -22,24 +22,19 @@ import org.geoserver.catalog.LegendInfo;
 import org.geoserver.catalog.MetadataLinkInfo;
 import org.geoserver.catalog.MetadataMap;
 import org.geoserver.catalog.impl.ClassMappings;
-import org.geoserver.catalog.plugin.Patch;
-import org.geoserver.catalog.plugin.Query;
 import org.geoserver.jackson.databind.catalog.dto.AttributeType;
 import org.geoserver.jackson.databind.catalog.dto.AuthorityURL;
 import org.geoserver.jackson.databind.catalog.dto.CoverageDimension;
-import org.geoserver.jackson.databind.catalog.dto.DataLink;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Dimension;
 import org.geoserver.jackson.databind.catalog.dto.GridGeometryDto;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
 import org.geoserver.jackson.databind.catalog.dto.LayerIdentifier;
-import org.geoserver.jackson.databind.catalog.dto.Legend;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
-import org.geoserver.jackson.databind.catalog.dto.PatchDto;
-import org.geoserver.jackson.databind.catalog.dto.QueryDto;
 import org.geoserver.jackson.databind.catalog.dto.VirtualTableDto;
 import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
-import org.geoserver.jackson.databind.mapper.PatchMapper;
 import org.geotools.api.coverage.grid.GridGeometry;
 import org.geotools.jackson.databind.filter.GeoToolsFilterModule;
 import org.geotools.jackson.databind.geojson.GeoToolsGeoJsonModule;
@@ -74,11 +69,10 @@ import org.mapstruct.factory.Mappers;
  * </code>
  * </pre>
  */
+@SuppressWarnings("serial")
 @Slf4j(topic = "org.geoserver.jackson.databind.catalog")
 public class GeoServerCatalogModule extends SimpleModule {
-    private static final long serialVersionUID = -8756800180255446679L;
 
-    static final PatchMapper PATCH_MAPPER = Mappers.getMapper(PatchMapper.class);
     static final GeoServerValueObjectsMapper VALUE_MAPPER = Mappers.getMapper(GeoServerValueObjectsMapper.class);
 
     public GeoServerCatalogModule() {
@@ -130,7 +124,6 @@ public class GeoServerCatalogModule extends SimpleModule {
     }
 
     private void registerValueMappers() {
-        addMapperSerializer(Patch.class, PATCH_MAPPER::patchToDto, PatchDto.class, PATCH_MAPPER::dtoToPatch);
 
         addMapperSerializer(KeywordInfo.class, VALUE_MAPPER::keyword, Keyword.class, VALUE_MAPPER::keyword);
 
@@ -139,29 +132,62 @@ public class GeoServerCatalogModule extends SimpleModule {
                 VALUE_MAPPER::virtualTableToDto,
                 VirtualTableDto.class,
                 VALUE_MAPPER::dtoToVirtualTable);
+
         addMapperSerializer(
-                MetadataLinkInfo.class, VALUE_MAPPER::infoToDto, MetadataLink.class, VALUE_MAPPER::dtoToInfo);
-        addMapperSerializer(LegendInfo.class, VALUE_MAPPER::infoToDto, Legend.class, VALUE_MAPPER::dtoToInfo);
+                MetadataLinkInfo.class,
+                VALUE_MAPPER::metadataLinkInfoToDto,
+                MetadataLinkInfoDto.class,
+                VALUE_MAPPER::dtoToMetadataLinkInfo);
+
         addMapperSerializer(
-                LayerIdentifierInfo.class, VALUE_MAPPER::infoToDto, LayerIdentifier.class, VALUE_MAPPER::dtoToInfo);
-        addMapperSerializer(DataLinkInfo.class, VALUE_MAPPER::infoToDto, DataLink.class, VALUE_MAPPER::dtoToInfo);
-        addMapperSerializer(DimensionInfo.class, VALUE_MAPPER::infoToDto, Dimension.class, VALUE_MAPPER::dtoToInfo);
+                LegendInfo.class, VALUE_MAPPER::legendInfoToDto, LegendInfoDto.class, VALUE_MAPPER::dtoToLegendInfo);
+
         addMapperSerializer(
-                CoverageDimensionInfo.class, VALUE_MAPPER::infoToDto, CoverageDimension.class, VALUE_MAPPER::dtoToInfo);
+                LayerIdentifierInfo.class,
+                VALUE_MAPPER::layerIdentifierInfoToDto,
+                LayerIdentifier.class,
+                VALUE_MAPPER::dtoToLayerIdentifierInfo);
+
         addMapperSerializer(
-                AuthorityURLInfo.class, VALUE_MAPPER::infoToDto, AuthorityURL.class, VALUE_MAPPER::dtoToInfo);
+                DataLinkInfo.class,
+                VALUE_MAPPER::dataLinkInfoToDto,
+                DataLinkInfoDto.class,
+                VALUE_MAPPER::dtoToDataLinkInfo);
+
+        addMapperSerializer(
+                DimensionInfo.class,
+                VALUE_MAPPER::dimensionInfoToDto,
+                Dimension.class,
+                VALUE_MAPPER::dtoToDimensionInfo);
+
+        addMapperSerializer(
+                CoverageDimensionInfo.class,
+                VALUE_MAPPER::coverageDimensionInfoToDto,
+                CoverageDimension.class,
+                VALUE_MAPPER::dtoToCoverageDimensionInfo);
+
+        addMapperSerializer(
+                AuthorityURLInfo.class,
+                VALUE_MAPPER::authorityURLInfoToDto,
+                AuthorityURL.class,
+                VALUE_MAPPER::dtoToAuthorityURLInfo);
+
         addMapperSerializer(
                 GridGeometry.class,
                 VALUE_MAPPER::gridGeometry2DToDto,
                 GridGeometryDto.class,
                 VALUE_MAPPER::dtoToGridGeometry2D);
 
-        addMapperSerializer(Query.class, VALUE_MAPPER::queryToDto, QueryDto.class, VALUE_MAPPER::dtoToQuery);
+        addMapperSerializer(
+                AttributeTypeInfo.class,
+                VALUE_MAPPER::attributeTypeInfoToDto,
+                AttributeType.class,
+                VALUE_MAPPER::dtoToAttributeTypeInfo);
 
         addMapperSerializer(
-                AttributeTypeInfo.class, VALUE_MAPPER::infoToDto, AttributeType.class, VALUE_MAPPER::dtoToInfo);
-
-        addMapperSerializer(
-                MetadataMap.class, VALUE_MAPPER::metadataMap, MetadataMapDto.class, VALUE_MAPPER::metadataMap);
+                MetadataMap.class,
+                VALUE_MAPPER::metadataMapToDto,
+                MetadataMapDto.class,
+                VALUE_MAPPER::dtoToMetadataMap);
     }
 }

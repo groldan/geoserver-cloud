@@ -24,7 +24,7 @@ import org.geoserver.jackson.databind.catalog.GeoServerCatalogModule;
 import org.geoserver.jackson.databind.catalog.dto.InfoDto;
 import org.geoserver.jackson.databind.config.dto.CogSettingsDto;
 import org.geoserver.jackson.databind.config.dto.CogSettingsStoreDto;
-import org.geoserver.jackson.databind.config.dto.Contact;
+import org.geoserver.jackson.databind.config.dto.ContactInfoDto;
 import org.geoserver.jackson.databind.config.dto.CoverageAccess;
 import org.geoserver.jackson.databind.config.dto.GeoServer;
 import org.geoserver.jackson.databind.config.dto.JaiDto;
@@ -117,7 +117,8 @@ public class GeoServerConfigModule extends SimpleModule {
 
         addMapperSerializer(JAIInfo.class, VALUE_MAPPER::jaiInfo, JaiDto.class, VALUE_MAPPER::jaiInfo);
 
-        addMapperSerializer(ContactInfo.class, VALUE_MAPPER::contactInfo, Contact.class, VALUE_MAPPER::contactInfo);
+        addMapperSerializer(
+                ContactInfo.class, VALUE_MAPPER::contactInfo, ContactInfoDto.class, VALUE_MAPPER::contactInfo);
 
         addMapperSerializer(
                 CogSettings.class, VALUE_MAPPER::cogSettings, CogSettingsDto.class, VALUE_MAPPER::cogSettings);

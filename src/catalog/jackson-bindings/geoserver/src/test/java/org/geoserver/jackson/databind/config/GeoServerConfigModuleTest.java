@@ -15,8 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogTestData;
 import org.geoserver.catalog.Info;
+import org.geoserver.catalog.impl.CatalogImpl;
 import org.geoserver.catalog.impl.ClassMappings;
-import org.geoserver.catalog.plugin.CatalogPlugin;
 import org.geoserver.catalog.plugin.resolving.ProxyUtils;
 import org.geoserver.config.ContactInfo;
 import org.geoserver.config.GeoServer;
@@ -35,14 +35,14 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Verifies that all GeoServer config ({@link GeoServerInfo}, etc) object types can be sent over the
- * wire and parsed back using jackson, thanks to {@link GeoServerConfigModule} jackcon-databind
+ * wire and parsed back using jackson, thanks to {@link GeoServerConfigModule} jackson-databind
  * module
  */
 @Slf4j
 public abstract class GeoServerConfigModuleTest {
 
     protected void print(String logmsg, Object... args) {
-        boolean debug = Boolean.getBoolean("debug");
+        boolean debug = true; // Boolean.getBoolean("debug");
         if (debug) log.info(logmsg, args);
     }
 
@@ -63,7 +63,7 @@ public abstract class GeoServerConfigModuleTest {
 
     public @BeforeEach void before() {
         objectMapper = newObjectMapper();
-        catalog = new CatalogPlugin();
+        catalog = new CatalogImpl();
         geoserver = new GeoServerImpl();
         testData = CatalogTestData.initialized(() -> catalog, () -> geoserver)
                 .initConfig(false)
@@ -81,7 +81,7 @@ public abstract class GeoServerConfigModuleTest {
         @SuppressWarnings("unchecked")
         Class<T> type = cm == null ? (Class<T>) orig.getClass() : (Class<T>) cm.getInterface();
 
-        T decoded = objectMapper.readValue(encoded, type);
+        T decoded = (T) objectMapper.readValue(encoded, Info.class);
         print("decoded: {}", decoded);
         // This is the client code's responsibility, the Deserializer returns "resolving proxy"
         // proxies for Info references

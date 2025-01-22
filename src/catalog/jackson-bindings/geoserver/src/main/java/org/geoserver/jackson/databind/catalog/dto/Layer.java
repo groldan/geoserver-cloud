@@ -25,7 +25,7 @@ public class Layer extends Published {
     protected String defaultStyle;
     protected Set<String> styles;
     protected String resource;
-    protected Legend legend;
+    protected LegendInfoDto legend;
     private PublishedType type;
     protected Boolean queryable;
     protected Boolean opaque;

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Set;
 import org.assertj.core.api.Condition;
 import org.geoserver.jackson.databind.catalog.GeoServerCatalogModule;
+import org.geoserver.jackson.databind.catalog.GeoServerCloudCatalogModule;
 import org.geoserver.jackson.databind.config.GeoServerConfigModule;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,10 @@ class GeoServerJacksonBindingsAutoConfigurationTest {
     @Test
     void testObjectMapper() {
         this.contextRunner.run(context -> assertThat(context).hasSingleBean(ObjectMapper.class));
-        Condition<? super Set<Object>> condition = matching(
-                Matchers.hasItems(new GeoServerCatalogModule().getTypeId(), new GeoServerConfigModule().getTypeId()));
+        Condition<? super Set<Object>> condition = matching(Matchers.hasItems(
+                new GeoServerCatalogModule().getTypeId(),
+                new GeoServerConfigModule().getTypeId(),
+                new GeoServerCloudCatalogModule().getTypeId()));
         this.contextRunner.run(context -> assertThat(context)
                 .getBean(ObjectMapper.class)
                 .extracting(ObjectMapper::getRegisteredModuleIds)

@@ -33,7 +33,7 @@ public class LayerGroup extends Published {
     protected String rootLayerStyle;
     protected List<String> layers;
     protected List<String> styles;
-    protected List<MetadataLink> metadataLinks;
+    protected List<MetadataLinkInfoDto> metadataLinks;
     protected Envelope bounds;
     private List<Keyword> keywords;
 
@@ -50,5 +50,5 @@ public class LayerGroup extends Published {
     /**
      * @since geoserver 2.21.0
      */
-    private List<LayerGroupStyle> layerGroupStyles;
+    private List<LayerGroupStyleDto> layerGroupStyles;
 }
