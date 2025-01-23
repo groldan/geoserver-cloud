@@ -108,6 +108,11 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.geoserver.cloud.catalog</groupId>
+        <artifactId>gs-cloud-rest-backup</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.geoserver.cloud</groupId>
         <artifactId>gs-cloud-starter-event-bus</artifactId>
         <version>${project.version}</version>

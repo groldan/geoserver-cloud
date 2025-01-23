@@ -1,6 +1,7 @@
-package org.geoserver.catalog.plugin;
+package org.geoserver.cloud.backuprestore;
 
 import java.util.function.UnaryOperator;
+import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.geoserver.catalog.Catalog;
@@ -19,7 +20,7 @@ import org.geoserver.catalog.plugin.resolving.CatalogPropertyResolver;
 import org.geoserver.catalog.plugin.resolving.CollectionPropertiesInitializer;
 import org.geoserver.catalog.plugin.resolving.ResolvingProxyResolver;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class CatalogSupport {
 
     @NonNull
@@ -55,6 +56,10 @@ public class CatalogSupport {
         }
     }
 
+    public void upsert(@NonNull Info info) {
+        throw new UnsupportedOperationException();
+    }
+
     public <T extends Info> T resolve(T info) {
         UnaryOperator<T> function = resolvingFunction(catalog);
         return function.apply(info);
@@ -65,5 +70,14 @@ public class CatalogSupport {
         ResolvingProxyResolver<T> proxyRefsResolver = ResolvingProxyResolver.<T>failOnNotFound(catalog);
         CollectionPropertiesInitializer<T> collectionsInitializer = CollectionPropertiesInitializer.instance();
         return catalogPropResolver.andThen(proxyRefsResolver).andThen(collectionsInitializer)::apply;
+    }
+
+    public static CatalogSupport acceptingNewOnly(@NonNull Catalog rawCatalog) {
+        return new CatalogSupport(rawCatalog);
+    }
+
+    public static CatalogSupport overridingExisting(@NonNull Catalog rawCatalog) {
+        // TODO
+        return new CatalogSupport(rawCatalog);
     }
 }

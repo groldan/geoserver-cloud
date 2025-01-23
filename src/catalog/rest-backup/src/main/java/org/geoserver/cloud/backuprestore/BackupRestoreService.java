@@ -1,4 +1,6 @@
-package org.geoserver.cloud.rest.backuprestore;
+package org.geoserver.cloud.backuprestore;
+
+import static java.util.stream.Stream.concat;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.CatalogInfo;
+import org.geoserver.catalog.Info;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.NamespaceInfo;
@@ -21,7 +24,6 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
-import org.geoserver.catalog.plugin.CatalogSupport;
 import org.geoserver.catalog.util.CloseableIterator;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.GeoServerInfo;
@@ -32,33 +34,14 @@ import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
 import org.geotools.api.filter.Filter;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
 
-/**
- * <p>
- * <ul>
- * <li>{@code GET /rest/catalog}: {@link #backup back up} the catalog and
- * configuration
- * <li>{@code POST /rest/catalog}: {@link #restore restore} a backup into an
- * empty catalog
- * <li>{@code PUT /rest/catalog}: {@link #ingest ingest} (import) a backup,
- * overriding existing objects
- * <li>{@code DELETE /rest/catalog}:{@link #prune prune} the whole Catalog and
- * Configuration</li>
- */
-@RestController
-@RequestMapping(path = "/rest/catalog")
 @RequiredArgsConstructor
 @Slf4j
-public class JsonBackupRestoreController {
+public class BackupRestoreService {
 
     @NonNull
     private final GeoServer geoServer;
@@ -67,17 +50,31 @@ public class JsonBackupRestoreController {
     private final Catalog rawCatalog;
 
     /**
-     *
      * @return
      */
-    @GetMapping(produces = MediaType.APPLICATION_NDJSON_VALUE)
-    public Flux<Object> backup() {
+    public Stream<Object> backup() {
 
-        Supplier<Stream<? extends Object>> concatStreams = concatStreams();
-        Summary summary = new Summary();
-        Flux<Object> flux = Flux.fromStream(concatStreams).doOnNext(summary::add);
+        BackupHeader header = new BackupHeader().withUser(currentUsername());
+        BackupSummary summary = new BackupSummary();
 
-        return flux.concatWith(Flux.just(summary));
+        Stream<? extends Object> concatStreams = concatStreams().get();
+
+        concatStreams = concatStreams.peek(summary::add);
+
+        return concat(concat(Stream.of(header), concatStreams), Stream.of(summary));
+    }
+
+    private String currentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof UserDetails) {
+                return ((UserDetails) principal).getUsername(); // Extract the username
+            } else {
+                return principal.toString(); // In case of other principal types
+            }
+        }
+        return null; // No authenticated user
     }
 
     /**
@@ -86,14 +83,9 @@ public class JsonBackupRestoreController {
      *
      * @param data
      */
-    @PostMapping(consumes = MediaType.APPLICATION_NDJSON_VALUE)
     public void restore(@RequestBody Stream<Object> data) {
-        log.info("processing request body");
-
-        CatalogSupport catalogSupport = new CatalogSupport(rawCatalog);
-
+        CatalogSupport catalogSupport = CatalogSupport.acceptingNewOnly(rawCatalog);
         data.forEach(d -> processIncoming(d, catalogSupport));
-        log.info("finished processing request body");
     }
 
     /**
@@ -107,46 +99,53 @@ public class JsonBackupRestoreController {
      *          {@link GeoServerInfo} object.
      * @param data
      */
-    @PutMapping(consumes = MediaType.APPLICATION_NDJSON_VALUE)
     public void ingest(@RequestBody Stream<Object> data) {
-        log.info("processing request body");
-
-        CatalogSupport catalogSupport = new CatalogSupport(rawCatalog);
-
+        CatalogSupport catalogSupport = CatalogSupport.overridingExisting(rawCatalog);
         data.forEach(d -> processIncoming(d, catalogSupport));
-        log.info("finished processing request body");
     }
 
-    @DeleteMapping
-    public Summary prune() {
+    public BackupSummary prune() {
         throw new UnsupportedOperationException("unimplemented");
     }
 
     private void processIncoming(Object d, CatalogSupport catalogSupport) {
         log.info("processing {}: {}", d.getClass().getCanonicalName(), d);
-        if (d instanceof Resource res) {
+        if (d instanceof BackupHeader h) {
+        } else if (d instanceof BackupSummary s) {
+        } else if (d instanceof Resource res) {
+            processResource(res);
+        } else if (d instanceof Info info) {
+            processInfo(info, catalogSupport);
+        }
+    }
 
-        } else if (d instanceof CatalogInfo info) {
-            info = catalogSupport.resolve(info);
-            catalogSupport.add(info);
-        } else if (d instanceof GeoServerInfo global) {
+    private void processResource(Resource res) {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void processInfo(Info info, CatalogSupport catalogSupport) {
+        info = catalogSupport.resolve(info);
+        if (info instanceof CatalogInfo c) {
+            catalogSupport.add(c);
+        } else if (info instanceof GeoServerInfo global) {
             geoServer.setGlobal(global);
-        } else if (d instanceof LoggingInfo logging) {
+        } else if (info instanceof LoggingInfo logging) {
             geoServer.setLogging(logging);
-        } else if (d instanceof ServiceInfo service) {
+        } else if (info instanceof ServiceInfo service) {
             geoServer.add(service);
-        } else if (d instanceof SettingsInfo settings) {
+        } else if (info instanceof SettingsInfo settings) {
             geoServer.add(settings);
         }
     }
 
     private Supplier<Stream<? extends Object>> concatStreams() {
-        Supplier<Stream<Resource>> resources = () -> Stream.empty(); // resources();
+        Supplier<Stream<Resource>> resources = resources();
         Supplier<Stream<CatalogInfo>> catalog = catalog();
         Supplier<Stream<Object>> geoserver = config();
 
-        return () -> Stream.of(() -> resources.get().map(ResourceDto::valueOf), catalog, geoserver)
-                .flatMap(Supplier::get);
+        return () ->
+                Stream.of(resources, catalog, geoserver).flatMap(Supplier::get).filter(this::includeCatalogInfo);
     }
 
     private Supplier<Stream<Object>> config() {
@@ -170,7 +169,7 @@ public class JsonBackupRestoreController {
         Supplier<Stream<WorkspaceInfo>> workspaces = list(catalog, WorkspaceInfo.class);
         Supplier<Stream<StoreInfo>> stores = list(catalog, StoreInfo.class);
         Supplier<Stream<ResourceInfo>> resources = list(catalog, ResourceInfo.class);
-        // TODO: filter out default styles
+        // TODO: filter out default styles?
         Supplier<Stream<StyleInfo>> styles = list(catalog, StyleInfo.class);
         Supplier<Stream<LayerInfo>> layers = list(catalog, LayerInfo.class);
         Supplier<Stream<LayerGroupInfo>> layerGroups = list(catalog, LayerGroupInfo.class);
@@ -250,5 +249,19 @@ public class JsonBackupRestoreController {
         SettingsInfo settings = geoServer.getSettings(ws);
         Collection<? extends ServiceInfo> services = geoServer.getServices(ws);
         return Stream.concat(Stream.of(settings), services.stream()).filter(Objects::nonNull);
+    }
+
+    private boolean includeCatalogInfo(Object o) {
+        if (o instanceof StyleInfo s) return !isDefaultStyle(s);
+        return true;
+    }
+
+    static boolean isDefaultStyle(StyleInfo s) {
+        return s.getWorkspace() == null
+                && (StyleInfo.DEFAULT_POINT.equals(s.getName())
+                        || StyleInfo.DEFAULT_LINE.equals(s.getName())
+                        || StyleInfo.DEFAULT_POLYGON.equals(s.getName())
+                        || StyleInfo.DEFAULT_RASTER.equals(s.getName())
+                        || StyleInfo.DEFAULT_GENERIC.equals(s.getName()));
     }
 }

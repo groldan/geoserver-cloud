@@ -208,7 +208,18 @@ public class CatalogPlugin extends CatalogImpl implements Catalog {
     }
 
     public void add(@NonNull CatalogInfo info) {
-        new CatalogSupport(this).add(info);
+        switch (info) {
+            case WorkspaceInfo ws -> add(ws);
+            case NamespaceInfo ns -> add(ns);
+            case StoreInfo st -> add(st);
+            case ResourceInfo r -> add(r);
+            case LayerInfo l -> add(l);
+            case LayerGroupInfo lg -> add(lg);
+            case StyleInfo s -> add(s);
+            case MapInfo m -> add(m);
+            default -> throw new IllegalArgumentException("Unexpected value: %s"
+                    .formatted(ModificationProxy.unwrap(info).getClass()));
+        }
     }
 
     public void save(@NonNull CatalogInfo info) {
@@ -216,7 +227,18 @@ public class CatalogPlugin extends CatalogImpl implements Catalog {
     }
 
     public void remove(@NonNull CatalogInfo info) {
-        new CatalogSupport(this).remove(info);
+        switch (info) {
+            case WorkspaceInfo ws -> remove(ws);
+            case NamespaceInfo ns -> remove(ns);
+            case StoreInfo st -> remove(st);
+            case ResourceInfo r -> remove(r);
+            case LayerInfo l -> remove(l);
+            case LayerGroupInfo lg -> remove(lg);
+            case StyleInfo s -> remove(s);
+            case MapInfo m -> remove(m);
+            default -> throw new IllegalArgumentException("Unexpected value: %s"
+                    .formatted(ModificationProxy.unwrap(info).getClass()));
+        }
     }
 
     // Store methods

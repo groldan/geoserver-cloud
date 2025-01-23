@@ -17,6 +17,7 @@
     <module>jackson-bindings</module>
     <module>event-bus</module>
     <module>backends</module>
+    <module>rest-backup</module>
   </modules>
   <dependencies>
     <dependency>

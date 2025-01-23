@@ -30,6 +30,10 @@
       <artifactId>gs-restconfig</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.geoserver.cloud.catalog</groupId>
+      <artifactId>gs-cloud-rest-backup</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.geoserver</groupId>
       <artifactId>gs-restconfig-wcs</artifactId>
     </dependency>

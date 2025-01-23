@@ -81,18 +81,6 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
     private BiConsumer<CatalogInfo, ResolvingProxy> onNotFound;
 
     /**
-     * Constructs a resolver with a catalog supplier and default not-found behavior.
-     *
-     * <p>Uses a logging warning as the default action for unresolved proxies.
-     *
-     * @param catalog The supplier of the {@link Catalog} for resolution; must not be null.
-     * @throws NullPointerException if {@code catalog} is null.
-     */
-    private ResolvingProxyResolver(@NonNull Supplier<Catalog> catalog) {
-        this(catalog, ResolvingProxyResolver::warnOnNotFound);
-    }
-
-    /**
      * Constructs a resolver with a catalog supplier and custom not-found behavior.
      *
      * @param catalog   The supplier of the {@link Catalog} for resolution; must not be null.
@@ -101,19 +89,10 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      */
     private ResolvingProxyResolver(
             @NonNull Supplier<Catalog> catalog, @NonNull BiConsumer<CatalogInfo, ResolvingProxy> onNotFound) {
-        Objects.requireNonNull(catalog, "Catalog supplier must not be null");
-        Objects.requireNonNull(onNotFound, "onNotFound consumer must not be null");
+
         this.catalog = catalog;
         this.onNotFound = onNotFound;
         this.proxyUtils = new ProxyUtils(catalog, Optional.empty());
-    }
-
-    private static void warnOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
-        log.warn("ResolvingProxy object not found in catalog, keeping proxy around: %s".formatted(info.getId()));
-    }
-
-    private static void failOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
-        throw new NoSuchElementException("Object not found: %s".formatted(info.getId()));
     }
 
     /**
@@ -126,8 +105,8 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @throws NullPointerException if {@code catalog} or {@code onNotFound} is null.
      */
     public static <I extends Info> ResolvingProxyResolver<I> of(
-            Catalog catalog, BiConsumer<CatalogInfo, ResolvingProxy> onNotFound) {
-        return new ResolvingProxyResolver<>(() -> catalog, onNotFound);
+            @NonNull Catalog catalog, @NonNull BiConsumer<CatalogInfo, ResolvingProxy> onNotFound) {
+        return ResolvingProxyResolver.of(() -> catalog, onNotFound);
     }
 
     /**
@@ -140,41 +119,64 @@ public class ResolvingProxyResolver<T> implements UnaryOperator<T> {
      * @throws NullPointerException if {@code catalog} or {@code onNotFound} is null.
      */
     public static <I extends Info> ResolvingProxyResolver<I> of(
-            Supplier<Catalog> catalog, BiConsumer<CatalogInfo, ResolvingProxy> onNotFound) {
+            @NonNull Supplier<Catalog> catalog, @NonNull BiConsumer<CatalogInfo, ResolvingProxy> onNotFound) {
         return new ResolvingProxyResolver<>(catalog, onNotFound);
     }
 
     /**
-     * Creates a resolver with a fixed catalog and configurable failure on not found.
+     * Creates a resolver with a fixed catalog that fails on not found.
      *
      * @param <I>           The type of {@link Info} to resolve.
      * @param catalog       The {@link Catalog} to use; must not be null.
-     * @param errorOnNotFound If true, throws an exception on unresolved proxies; if false, logs a warning.
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
+    public static <I extends Info> ResolvingProxyResolver<I> failOnNotFound(@NonNull Catalog catalog) {
+        return failOnNotFound(() -> catalog);
     }
 
     /**
-     * Creates a resolver with a fixed catalog and default not-found behavior.
+     * Creates a resolver with a fixed catalog that fails on not found.
+     *
+     * @param <I>           The type of {@link Info} to resolve.
+     * @param catalog       The {@link Catalog} to use; must not be null.
+     * @return A new {@link ResolvingProxyResolver} instance.
+     * @throws NullPointerException if {@code catalog} is null.
+     */
+    public static <I extends Info> ResolvingProxyResolver<I> failOnNotFound(@NonNull Supplier<Catalog> catalog) {
+        return ResolvingProxyResolver.of(catalog, ResolvingProxyResolver::failOnNotFound);
+    }
+
+    /**
+     * Creates a resolver with a fixed catalog and silent not-found behavior.
      *
      * @param <I>     The type of {@link Info} to resolve.
      * @param catalog The {@link Catalog} to use; must not be null.
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
-        return new ResolvingProxyResolver<>(() -> catalog);
+    public static <I extends Info> ResolvingProxyResolver<I> silentOnNotFound(@NonNull Catalog catalog) {
+        return ResolvingProxyResolver.silentOnNotFound(() -> catalog);
     }
 
     /**
-     * Creates a resolver with a catalog supplier and default not-found behavior.
+     * Creates a resolver with a catalog supplier and silent not-found behavior.
      *
      * @param <I>     The type of {@link Info} to resolve.
      * @param catalog The supplier of the {@link Catalog}; must not be null.
      * @return A new {@link ResolvingProxyResolver} instance.
      * @throws NullPointerException if {@code catalog} is null.
      */
-        return new ResolvingProxyResolver<>(catalog);
+    public static <I extends Info> ResolvingProxyResolver<I> silentOnNotFound(Supplier<Catalog> catalog) {
+        return ResolvingProxyResolver.of(catalog, ResolvingProxyResolver::warnOnNotFound);
+    }
+
+    private static void warnOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
+        log.warn("ResolvingProxy object not found in catalog, keeping proxy around: %s".formatted(info.getId()));
+    }
+
+    private static void failOnNotFound(CatalogInfo info, ResolvingProxy proxy) {
+        throw new NoSuchElementException("Object not found: %s".formatted(info.getId()));
     }
 
     /**
