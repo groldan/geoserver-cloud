@@ -16,6 +16,6 @@ public class ConfigInfoSerializer<T extends Info> extends MapperSerializer<T, Co
     private static final GeoServerConfigMapper mapper = Mappers.getMapper(GeoServerConfigMapper.class);
 
     public ConfigInfoSerializer(Class<T> type) {
-        super(type, mapper::toDto);
+        super(type, mapper::genericInfoToDto);
     }
 }

@@ -5,11 +5,15 @@
 package org.geoserver.jackson.databind.catalog.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Date;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 @JsonSubTypes({
     @JsonSubTypes.Type(value = Workspace.class),
     @JsonSubTypes.Type(value = Namespace.class),
@@ -19,9 +23,7 @@ import lombok.ToString;
     @JsonSubTypes.Type(value = Resource.class),
     @JsonSubTypes.Type(value = Published.class)
 })
-@Data
-@ToString(callSuper = true)
-@EqualsAndHashCode(callSuper = true)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
 public abstract class CatalogInfoDto extends InfoDto {
     private Date dateCreated;
     private Date dateModified;

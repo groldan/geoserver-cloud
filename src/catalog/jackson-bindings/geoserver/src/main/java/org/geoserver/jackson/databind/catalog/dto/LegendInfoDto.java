@@ -5,10 +5,15 @@
 package org.geoserver.jackson.databind.catalog.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
-public class Legend {
-    private String id;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+// @JsonTypeName("LegendInfo")
+public class LegendInfoDto extends ValueObjectInfoDto {
+
     private int width;
     private int height;
     private String format;

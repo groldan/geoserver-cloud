@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.AuthorityURLInfo;
@@ -89,6 +90,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import si.uom.SI;
 
 /**
@@ -103,6 +105,30 @@ public abstract class GeoServerCatalogModuleTest {
     protected void print(String logmsg, Object... args) {
         boolean debug = Boolean.getBoolean("debug");
         if (debug) log.info(logmsg, args);
+        log.info(logmsg, args);
+    }
+
+    private void printEncoded(String encoded) {
+        print("encoded: {}", encoded);
+
+        //        encoded = new BufferedReader(new StringReader(encoded))
+        //                .lines()
+        //                .map("                %s"::formatted)
+        //                .collect(Collectors.joining("\n"));
+        //        String testCase =
+        //                """
+        //	    @Test
+        //	    void %s() throws Exception {
+        //	        String json =
+        //	                \"\"\"
+        //	%s
+        //	                \"\"\";
+        //                Object expected = null;
+        //                testDecode(json, expected);
+        //	    }
+        //	"""
+        //                        .formatted(testMethod, encoded);
+        //        System.err.println(testCase);
     }
 
     private ObjectMapper objectMapper;
@@ -112,13 +138,17 @@ public abstract class GeoServerCatalogModuleTest {
     private GeoServer geoserver;
     private ProxyUtils proxyResolver;
 
+    private String testMethod;
+
     public static @BeforeAll void oneTimeSetup() {
         // avoid the chatty warning logs due to catalog looking up a bean of type
         // GeoServerConfigurationLock
         GeoServerExtensionsHelper.setIsSpringContext(false);
     }
 
-    public @BeforeEach void before() {
+    @BeforeEach
+    public void before(TestInfo testInfo) {
+        this.testMethod = testInfo.getTestMethod().orElseThrow().getName();
         objectMapper = newObjectMapper();
         catalog = new CatalogPlugin();
         geoserver = new GeoServerImpl();
@@ -141,7 +171,7 @@ public abstract class GeoServerCatalogModuleTest {
         Class<T> abstractType = (Class<T>) classMappings.getInterface();
 
         String encoded = writer.writeValueAsString(orig);
-        print(encoded);
+        printEncoded(encoded);
         T decoded = objectMapper.readValue(encoded, abstractType);
         // assert it can also be parsed using the generic CatalogInfo class
         CatalogInfo asCatalogInfo = objectMapper.readValue(encoded, CatalogInfo.class);
@@ -189,6 +219,8 @@ public abstract class GeoServerCatalogModuleTest {
 
     @Test
     void testDataStore() throws Exception {
+        data.dataStoreA.setDateCreated(new Date());
+        data.dataStoreA.setDateModified(new Date());
         catalogInfoRoundtripTest(data.dataStoreA);
         catalogInfoRoundtripTest(data.dataStoreB);
         catalogInfoRoundtripTest(data.dataStoreC);
@@ -225,6 +257,12 @@ public abstract class GeoServerCatalogModuleTest {
 
     @Test
     void testFeatureType() throws Exception {
+        FeatureTypeInfo ft = createTestFeatureType();
+
+        catalogInfoRoundtripTest(ft);
+    }
+
+    private FeatureTypeInfo createTestFeatureType() {
         KeywordInfo k = new Keyword("value");
         k.setLanguage("es");
         FeatureTypeInfo ft = data.featureTypeA;
@@ -238,11 +276,11 @@ public abstract class GeoServerCatalogModuleTest {
                 .internationalString(Locale.ENGLISH, "english title", Locale.CANADA_FRENCH, "titre anglais"));
         ft.setInternationalAbstract(data.faker()
                 .internationalString(Locale.ENGLISH, "english abstract", Locale.CANADA_FRENCH, "résumé anglais"));
-
-        catalogInfoRoundtripTest(ft);
+        return ft;
     }
 
-    private List<AttributeTypeInfo> createTestAttributes(FeatureTypeInfo info) throws SchemaException {
+    @SneakyThrows(SchemaException.class)
+    static List<AttributeTypeInfo> createTestAttributes(FeatureTypeInfo info) {
         String typeSpec =
                 "name:string,id:String,polygonProperty:Polygon:srid=32615,centroid:Point,url:java.net.URL,uuid:UUID";
         SimpleFeatureType ft = DataUtilities.createType("TestType", typeSpec);
@@ -448,7 +486,7 @@ public abstract class GeoServerCatalogModuleTest {
         ObjectWriter writer = objectMapper.writer();
         writer = writer.withDefaultPrettyPrinter();
         String encoded = writer.writeValueAsString(orig);
-        print("encoded: {}", encoded);
+        printEncoded(encoded);
         @SuppressWarnings("unchecked")
         T decoded = (T) objectMapper.readValue(encoded, clazz);
         print("decoded: {}", decoded);
@@ -487,23 +525,23 @@ public abstract class GeoServerCatalogModuleTest {
     void testValueCoordinateReferenceSystemCustomCRS() throws Exception {
         String customWKT =
                 """
-			PROJCS[ "UTM Zone 10, Northern Hemisphere",
-			  GEOGCS["GRS 1980(IUGG, 1980)",
-			    DATUM["unknown",
-			       SPHEROID["GRS80",6378137,298.257222101],
-			       TOWGS84[0,0,0,0,0,0,0]
-			    ],
-			    PRIMEM["Greenwich",0],
-			    UNIT["degree",0.0174532925199433]
-			  ],
-			  PROJECTION["Transverse_Mercator"],
-			  PARAMETER["latitude_of_origin",0],
-			  PARAMETER["central_meridian",-123],
-			  PARAMETER["scale_factor",0.9996],
-			  PARAMETER["false_easting",1640419.947506562],
-			  PARAMETER["false_northing",0],
-			  UNIT["Foot (International)",0.3048]
-			]""";
+            PROJCS[ "UTM Zone 10, Northern Hemisphere",
+              GEOGCS["GRS 1980(IUGG, 1980)",
+                DATUM["unknown",
+                   SPHEROID["GRS80",6378137,298.257222101],
+                   TOWGS84[0,0,0,0,0,0,0]
+                ],
+                PRIMEM["Greenwich",0],
+                UNIT["degree",0.0174532925199433]
+              ],
+              PROJECTION["Transverse_Mercator"],
+              PARAMETER["latitude_of_origin",0],
+              PARAMETER["central_meridian",-123],
+              PARAMETER["scale_factor",0.9996],
+              PARAMETER["false_easting",1640419.947506562],
+              PARAMETER["false_northing",0],
+              UNIT["Foot (International)",0.3048]
+            ]""";
 
         CoordinateReferenceSystem crs = CRS.parseWKT(customWKT);
         testValueCoordinateReferenceSystem(crs);

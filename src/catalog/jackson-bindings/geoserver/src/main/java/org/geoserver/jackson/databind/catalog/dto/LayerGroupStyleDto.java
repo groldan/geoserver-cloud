@@ -7,6 +7,8 @@ package org.geoserver.jackson.databind.catalog.dto;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 /**
  * DTO for {@link org.geoserver.catalog.impl.LayerGroupStyle}
@@ -15,9 +17,10 @@ import lombok.Data;
  * @since 1.0-RC2 (geoserver 2.21.0)
  */
 @Data
-public class LayerGroupStyle {
-
-    private String id;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+// @JsonTypeName("LayerGroupStyle")
+public class LayerGroupStyleDto extends ValueObjectInfoDto {
 
     /** The style name as a StyleInfo. */
     private Style name;

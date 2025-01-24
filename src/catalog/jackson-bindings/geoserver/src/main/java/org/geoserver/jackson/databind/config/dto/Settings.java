@@ -20,7 +20,7 @@ import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 public class Settings extends ConfigInfoDto {
     private String workspace;
     private String title;
-    private Contact contact;
+    private ContactInfoDto contact;
     private String charset;
     private int numDecimals;
     private String onlineResource;

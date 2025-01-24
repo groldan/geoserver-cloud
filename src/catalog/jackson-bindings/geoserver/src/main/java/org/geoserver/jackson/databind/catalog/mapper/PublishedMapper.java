@@ -57,7 +57,7 @@ public interface PublishedMapper {
     LayerGroup map(LayerGroupInfo o);
 
     @Mapping(source = "layers", target = "layers", qualifiedByName = "publishedInfo")
-    LayerGroupStyle map(org.geoserver.jackson.databind.catalog.dto.LayerGroupStyle o);
+    LayerGroupStyle map(org.geoserver.jackson.databind.catalog.dto.LayerGroupStyleDto o);
 
-    org.geoserver.jackson.databind.catalog.dto.LayerGroupStyle map(LayerGroupStyle o);
+    org.geoserver.jackson.databind.catalog.dto.LayerGroupStyleDto map(LayerGroupStyle o);
 }

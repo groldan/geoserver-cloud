@@ -90,6 +90,7 @@ import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import si.uom.SI;
 
 /**
@@ -105,6 +106,30 @@ public abstract class PatchSerializationTest {
         if (debug) log.info(logmsg, args);
     }
 
+    private void printEncoded(String encoded) {
+        print("{}: encoded:%s{}", testMethod, encoded);
+
+        //        encoded = new BufferedReader(new StringReader(encoded))
+        //                .lines()
+        //                .map("                %s"::formatted)
+        //                .collect(Collectors.joining("\n"));
+        //        String testCase =
+        //                """
+        //	    @Test
+        //	    void %s() throws Exception {
+        //	        String json =
+        //	                \"\"\"
+        //	%s
+        //	                \"\"\";
+        //                Object expected = null;
+        //                testDecode(json, expected);
+        //	    }
+        //	"""
+        //                        .formatted(testMethod, encoded);
+        //        System.err.println(testCase);
+    }
+
+    private String testMethod;
     public ObjectMapper objectMapper;
 
     private Catalog catalog;
@@ -118,7 +143,8 @@ public abstract class PatchSerializationTest {
         GeoServerExtensionsHelper.setIsSpringContext(false);
     }
 
-    public @BeforeEach void before() {
+    public @BeforeEach void before(TestInfo testInfo) {
+        this.testMethod = testInfo.getTestMethod().orElseThrow().getName();
         objectMapper = newObjectMapper();
         catalog = new CatalogPlugin();
         geoserver = new GeoServerImpl();
@@ -763,7 +789,7 @@ public abstract class PatchSerializationTest {
         boolean encodeByReference = ProxyUtils.encodeByReference(patchValue);
 
         String encoded = asJson(patch);
-        print("encoded: {}", encoded);
+        printEncoded(encoded);
 
         Patch decoded = objectMapper.readValue(encoded, Patch.class);
         print("decoded: {}", asJson(decoded));

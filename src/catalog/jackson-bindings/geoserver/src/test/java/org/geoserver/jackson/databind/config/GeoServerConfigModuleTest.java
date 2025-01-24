@@ -32,6 +32,7 @@ import org.geoserver.wfs.WFSInfo;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * Verifies that all GeoServer config ({@link GeoServerInfo}, etc) object types can be sent over the
@@ -45,6 +46,12 @@ public abstract class GeoServerConfigModuleTest {
         boolean debug = Boolean.getBoolean("debug");
         if (debug) log.info(logmsg, args);
     }
+
+    private void printEncoded(String encoded) {
+        print("{}: encoded:%s{}", testMethod, encoded);
+    }
+
+    private String testMethod;
 
     private ObjectMapper objectMapper;
 
@@ -61,7 +68,8 @@ public abstract class GeoServerConfigModuleTest {
 
     protected abstract ObjectMapper newObjectMapper();
 
-    public @BeforeEach void before() {
+    public @BeforeEach void before(TestInfo testInfo) {
+        this.testMethod = testInfo.getTestMethod().orElseThrow().getName();
         objectMapper = newObjectMapper();
         catalog = new CatalogPlugin();
         geoserver = new GeoServerImpl();
@@ -72,14 +80,18 @@ public abstract class GeoServerConfigModuleTest {
     }
 
     private <T extends Info> void roundtripTest(@NonNull final T orig) throws JsonProcessingException {
-        ObjectWriter writer = objectMapper.writer();
-        writer = writer.withDefaultPrettyPrinter();
-        String encoded = writer.writeValueAsString(orig);
-        print("encoded: {}", encoded);
-
         ClassMappings cm = ClassMappings.fromImpl(orig.getClass());
         @SuppressWarnings("unchecked")
         Class<T> type = cm == null ? (Class<T>) orig.getClass() : (Class<T>) cm.getInterface();
+
+        roundtripTest(orig, type);
+    }
+
+    private <T extends Info> void roundtripTest(@NonNull final T orig, Class<T> type) throws JsonProcessingException {
+        ObjectWriter writer = objectMapper.writer();
+        writer = writer.withDefaultPrettyPrinter();
+        String encoded = writer.writeValueAsString(orig);
+        printEncoded(encoded);
 
         T decoded = objectMapper.readValue(encoded, type);
         print("decoded: {}", decoded);
@@ -150,7 +162,7 @@ public abstract class GeoServerConfigModuleTest {
     @Test
     void contactInfo() throws Exception {
         ContactInfo contact = testData.faker().contactInfo();
-        roundtripTest(contact);
+        roundtripTest(contact, ContactInfo.class);
     }
 
     @Test

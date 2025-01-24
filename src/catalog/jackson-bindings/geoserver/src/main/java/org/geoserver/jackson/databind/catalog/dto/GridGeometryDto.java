@@ -4,6 +4,8 @@
  */
 package org.geoserver.jackson.databind.catalog.dto;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Data;
 import org.geoserver.config.util.XStreamPersister;
 import org.geotools.coverage.grid.GridGeometry2D;
@@ -15,6 +17,12 @@ import org.geotools.jackson.databind.dto.CRS;
  * @see XStreamPersister#GridGeometry2DConverter
  */
 @Data
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "@type",
+        defaultImpl = GridGeometryDto.class)
+@JsonTypeName("GridGeometry2D")
 public class GridGeometryDto {
     private int[] low;
     private int[] high;

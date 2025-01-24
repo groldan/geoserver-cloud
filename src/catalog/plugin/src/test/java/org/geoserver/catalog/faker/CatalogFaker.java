@@ -250,10 +250,12 @@ public class CatalogFaker {
         return wms;
     }
 
-    public CoverageInfo coverageInfo(String id, CoverageStoreInfo cstore, String name) {
+    public CoverageInfo coverageInfo(String id, NamespaceInfo namespace, CoverageStoreInfo cstore, String name) {
         CoverageInfo coverage = catalogFactory().createCoverage();
         OwsUtils.set(coverage, "id", id);
         coverage.setName(name);
+        coverage.setNativeName(name);
+        coverage.setNamespace(namespace);
         coverage.setStore(cstore);
         OwsUtils.resolveCollections(coverage);
         return coverage;
@@ -617,11 +619,19 @@ public class CatalogFaker {
     }
 
     public DataLinkInfo dataLinkInfo() {
+        return dataLinkInfo(
+                faker.idNumber().valid(),
+                faker.yoda().quote(),
+                faker.internet().domainWord(),
+                faker.internet().url());
+    }
+
+    public DataLinkInfo dataLinkInfo(String id, String _about, String type, String url) {
         DataLinkInfoImpl dl = new DataLinkInfoImpl();
-        dl.setAbout(faker.yoda().quote());
-        dl.setContent(faker.internet().url());
-        dl.setId(faker.idNumber().valid());
-        dl.setType(faker.internet().domainWord());
+        dl.setId(id);
+        dl.setAbout(_about);
+        dl.setType(type);
+        dl.setContent(url);
         return dl;
     }
 

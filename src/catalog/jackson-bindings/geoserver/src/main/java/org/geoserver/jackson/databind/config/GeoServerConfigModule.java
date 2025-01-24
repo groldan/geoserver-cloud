@@ -24,12 +24,12 @@ import org.geoserver.jackson.databind.catalog.GeoServerCatalogModule;
 import org.geoserver.jackson.databind.catalog.dto.InfoDto;
 import org.geoserver.jackson.databind.config.dto.CogSettingsDto;
 import org.geoserver.jackson.databind.config.dto.CogSettingsStoreDto;
-import org.geoserver.jackson.databind.config.dto.Contact;
+import org.geoserver.jackson.databind.config.dto.ContactInfoDto;
 import org.geoserver.jackson.databind.config.dto.CoverageAccess;
 import org.geoserver.jackson.databind.config.dto.GeoServer;
 import org.geoserver.jackson.databind.config.dto.JaiDto;
 import org.geoserver.jackson.databind.config.dto.Logging;
-import org.geoserver.jackson.databind.config.dto.Service;
+import org.geoserver.jackson.databind.config.dto.ServiceInfoDto;
 import org.geoserver.jackson.databind.config.dto.Settings;
 import org.geoserver.jackson.databind.config.dto.mapper.GeoServerConfigMapper;
 import org.geoserver.wcs.WCSInfo;
@@ -84,23 +84,29 @@ public class GeoServerConfigModule extends SimpleModule {
         addSerializer(LoggingInfo.class);
         addDeserializer(LoggingInfo.class, Logging.class);
 
-        addDeserializer(ServiceInfo.class, Service.class);
+        addDeserializer(ServiceInfo.class, ServiceInfoDto.class);
+        // revisit: Add a deserializer for the generic ServiceInfo class, but no serializer, serialized objects must be
+        // of a concrete type:
         addSerializer(ServiceInfo.class);
 
         addSerializer(WMSInfo.class);
-        addDeserializer(WMSInfo.class, Service.WmsService.class);
+        addDeserializer(WMSInfo.class, ServiceInfoDto.WmsService.class);
 
         addSerializer(WFSInfo.class);
-        addDeserializer(WFSInfo.class, Service.WfsService.class);
+        addDeserializer(WFSInfo.class, ServiceInfoDto.WfsService.class);
 
         addSerializer(WCSInfo.class);
-        addDeserializer(WCSInfo.class, Service.WcsService.class);
+        addDeserializer(WCSInfo.class, ServiceInfoDto.WcsService.class);
 
         addSerializer(WPSInfo.class);
-        addDeserializer(WPSInfo.class, Service.WpsService.class);
+        addDeserializer(WPSInfo.class, ServiceInfoDto.WpsService.class);
 
         addSerializer(WMTSInfo.class);
-        addDeserializer(WMTSInfo.class, Service.WmtsService.class);
+        addDeserializer(WMTSInfo.class, ServiceInfoDto.WmtsService.class);
+
+        // Add a deserializer for the generic Info class, but no serializer, serialized objects must be of a concrete
+        // type
+        addDeserializer(Info.class, InfoDto.class);
 
         registerValueSerializers();
     }
@@ -114,7 +120,8 @@ public class GeoServerConfigModule extends SimpleModule {
 
         addMapperSerializer(JAIInfo.class, VALUE_MAPPER::jaiInfo, JaiDto.class, VALUE_MAPPER::jaiInfo);
 
-        addMapperSerializer(ContactInfo.class, VALUE_MAPPER::contactInfo, Contact.class, VALUE_MAPPER::contactInfo);
+        addMapperSerializer(
+                ContactInfo.class, VALUE_MAPPER::contactInfo, ContactInfoDto.class, VALUE_MAPPER::contactInfo);
 
         addMapperSerializer(
                 CogSettings.class, VALUE_MAPPER::cogSettings, CogSettingsDto.class, VALUE_MAPPER::cogSettings);

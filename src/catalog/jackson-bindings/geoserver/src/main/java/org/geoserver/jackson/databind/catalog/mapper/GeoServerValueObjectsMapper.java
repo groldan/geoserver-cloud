@@ -23,16 +23,16 @@ import org.geoserver.catalog.MetadataMap;
 import org.geoserver.catalog.plugin.Query;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.jackson.databind.catalog.dto.AttributeType;
-import org.geoserver.jackson.databind.catalog.dto.Attribution;
+import org.geoserver.jackson.databind.catalog.dto.AttributionInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.AuthorityURL;
 import org.geoserver.jackson.databind.catalog.dto.CoverageDimension;
-import org.geoserver.jackson.databind.catalog.dto.DataLink;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Dimension;
 import org.geoserver.jackson.databind.catalog.dto.GridGeometryDto;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
 import org.geoserver.jackson.databind.catalog.dto.LayerIdentifier;
-import org.geoserver.jackson.databind.catalog.dto.Legend;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 import org.geoserver.jackson.databind.catalog.dto.QueryDto;
 import org.geoserver.jackson.databind.catalog.dto.VirtualTableDto;
@@ -73,7 +73,7 @@ public interface GeoServerValueObjectsMapper {
     /**
      * @see XStreamPersister#GridGeometry2DConverter
      */
-    default GridGeometry dtoToGridGeometry2D(GridGeometryDto value) {
+    default GridGeometry2D dtoToGridGeometry2D(GridGeometryDto value) {
         if (value == null) return null;
         CoordinateReferenceSystem crs = Mappers.getMapper(
                         org.geotools.jackson.databind.filter.mapper.GeoToolsValueMappers.class)
@@ -127,9 +127,9 @@ public interface GeoServerValueObjectsMapper {
     @Mapping(target = "attribute", ignore = true)
     AttributeTypeInfo dtoToInfo(AttributeType o);
 
-    Attribution infoToDto(AttributionInfo info);
+    AttributionInfoDto infoToDto(AttributionInfo info);
 
-    AttributionInfo dtoToInfo(Attribution dto);
+    AttributionInfo dtoToInfo(AttributionInfoDto dto);
 
     AuthorityURL infoToDto(AuthorityURLInfo info);
 
@@ -155,21 +155,21 @@ public interface GeoServerValueObjectsMapper {
     @InheritInverseConfiguration
     DimensionInfo dtoToInfo(Dimension info);
 
-    DataLink infoToDto(DataLinkInfo info);
+    DataLinkInfoDto infoToDto(DataLinkInfo info);
 
-    DataLinkInfo dtoToInfo(DataLink dto);
+    DataLinkInfo dtoToInfo(DataLinkInfoDto dto);
 
     LayerIdentifier infoToDto(LayerIdentifierInfo info);
 
     LayerIdentifierInfo dtoToInfo(LayerIdentifier dto);
 
-    Legend infoToDto(LegendInfo info);
+    LegendInfoDto infoToDto(LegendInfo info);
 
-    LegendInfo dtoToInfo(Legend info);
+    LegendInfo dtoToInfo(LegendInfoDto info);
 
-    MetadataLink infoToDto(MetadataLinkInfo info);
+    MetadataLinkInfoDto infoToDto(MetadataLinkInfo info);
 
-    MetadataLinkInfo dtoToInfo(MetadataLink dto);
+    MetadataLinkInfo dtoToInfo(MetadataLinkInfoDto dto);
 
     VirtualTableDto virtualTableToDto(VirtualTable value);
 

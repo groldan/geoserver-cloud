@@ -16,6 +16,7 @@ import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.CoverageDimensionInfo;
 import org.geoserver.catalog.DataLinkInfo;
 import org.geoserver.catalog.DimensionInfo;
+import org.geoserver.catalog.HTTPStoreInfo;
 import org.geoserver.catalog.KeywordInfo;
 import org.geoserver.catalog.LayerIdentifierInfo;
 import org.geoserver.catalog.LegendInfo;
@@ -27,13 +28,13 @@ import org.geoserver.catalog.plugin.Query;
 import org.geoserver.jackson.databind.catalog.dto.AttributeType;
 import org.geoserver.jackson.databind.catalog.dto.AuthorityURL;
 import org.geoserver.jackson.databind.catalog.dto.CoverageDimension;
-import org.geoserver.jackson.databind.catalog.dto.DataLink;
+import org.geoserver.jackson.databind.catalog.dto.DataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.Dimension;
 import org.geoserver.jackson.databind.catalog.dto.GridGeometryDto;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
 import org.geoserver.jackson.databind.catalog.dto.LayerIdentifier;
-import org.geoserver.jackson.databind.catalog.dto.Legend;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.LegendInfoDto;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 import org.geoserver.jackson.databind.catalog.dto.PatchDto;
 import org.geoserver.jackson.databind.catalog.dto.QueryDto;
@@ -41,6 +42,7 @@ import org.geoserver.jackson.databind.catalog.dto.VirtualTableDto;
 import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
 import org.geoserver.jackson.databind.mapper.PatchMapper;
 import org.geotools.api.coverage.grid.GridGeometry;
+import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.jackson.databind.filter.GeoToolsFilterModule;
 import org.geotools.jackson.databind.geojson.GeoToolsGeoJsonModule;
 import org.geotools.jackson.databind.util.MapperDeserializer;
@@ -104,6 +106,9 @@ public class GeoServerCatalogModule extends SimpleModule {
                     this.addSerializer(c);
                     this.addDeserializer(c);
                 });
+        // ClassMappings has no value of HTTPStoreInfo
+        // add a de-serializer for HTTPStoreInfo, but no serializer, since instances must be of a concrete subtype
+        addDeserializer(HTTPStoreInfo.class);
     }
 
     private <T extends CatalogInfo> void addSerializer(Class<T> clazz) {
@@ -140,18 +145,26 @@ public class GeoServerCatalogModule extends SimpleModule {
                 VirtualTableDto.class,
                 VALUE_MAPPER::dtoToVirtualTable);
         addMapperSerializer(
-                MetadataLinkInfo.class, VALUE_MAPPER::infoToDto, MetadataLink.class, VALUE_MAPPER::dtoToInfo);
-        addMapperSerializer(LegendInfo.class, VALUE_MAPPER::infoToDto, Legend.class, VALUE_MAPPER::dtoToInfo);
+                MetadataLinkInfo.class, VALUE_MAPPER::infoToDto, MetadataLinkInfoDto.class, VALUE_MAPPER::dtoToInfo);
+        addMapperSerializer(LegendInfo.class, VALUE_MAPPER::infoToDto, LegendInfoDto.class, VALUE_MAPPER::dtoToInfo);
         addMapperSerializer(
                 LayerIdentifierInfo.class, VALUE_MAPPER::infoToDto, LayerIdentifier.class, VALUE_MAPPER::dtoToInfo);
-        addMapperSerializer(DataLinkInfo.class, VALUE_MAPPER::infoToDto, DataLink.class, VALUE_MAPPER::dtoToInfo);
+        addMapperSerializer(
+                DataLinkInfo.class, VALUE_MAPPER::infoToDto, DataLinkInfoDto.class, VALUE_MAPPER::dtoToInfo);
         addMapperSerializer(DimensionInfo.class, VALUE_MAPPER::infoToDto, Dimension.class, VALUE_MAPPER::dtoToInfo);
         addMapperSerializer(
                 CoverageDimensionInfo.class, VALUE_MAPPER::infoToDto, CoverageDimension.class, VALUE_MAPPER::dtoToInfo);
         addMapperSerializer(
                 AuthorityURLInfo.class, VALUE_MAPPER::infoToDto, AuthorityURL.class, VALUE_MAPPER::dtoToInfo);
+
+        // register serializer for both GridGeometry and GridGeometry2D
         addMapperSerializer(
                 GridGeometry.class,
+                VALUE_MAPPER::gridGeometry2DToDto,
+                GridGeometryDto.class,
+                VALUE_MAPPER::dtoToGridGeometry2D);
+        addMapperSerializer(
+                GridGeometry2D.class,
                 VALUE_MAPPER::gridGeometry2DToDto,
                 GridGeometryDto.class,
                 VALUE_MAPPER::dtoToGridGeometry2D);

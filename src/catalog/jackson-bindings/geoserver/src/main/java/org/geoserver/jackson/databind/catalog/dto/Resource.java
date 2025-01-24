@@ -38,8 +38,8 @@ public abstract class Resource extends CatalogInfoDto {
     private String description;
     private String Abstract;
     private List<Keyword> keywords;
-    private List<MetadataLink> metadataLinks;
-    private List<DataLink> dataLinks;
+    private List<MetadataLinkInfoDto> metadataLinks;
+    private List<DataLinkInfoDto> dataLinks;
     private CRS nativeCRS;
     private String SRS;
     private Envelope nativeBoundingBox;

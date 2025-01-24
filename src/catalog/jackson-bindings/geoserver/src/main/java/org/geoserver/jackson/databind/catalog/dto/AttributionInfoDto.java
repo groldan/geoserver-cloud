@@ -5,10 +5,15 @@
 package org.geoserver.jackson.databind.catalog.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
-public class Attribution {
-    private String id;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+// @JsonTypeName("AttributionInfo")
+public class AttributionInfoDto extends ValueObjectInfoDto {
+
     private String title;
     private String href;
     private String logoURL;

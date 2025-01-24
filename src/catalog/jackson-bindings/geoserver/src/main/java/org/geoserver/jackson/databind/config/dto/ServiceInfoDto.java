@@ -20,7 +20,7 @@ import org.geoserver.catalog.impl.LayerIdentifier;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.gwc.wmts.WMTSInfo;
 import org.geoserver.jackson.databind.catalog.dto.Keyword;
-import org.geoserver.jackson.databind.catalog.dto.MetadataLink;
+import org.geoserver.jackson.databind.catalog.dto.MetadataLinkInfoDto;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 import org.geoserver.security.CatalogMode;
 import org.geoserver.wfs.GMLInfoImpl;
@@ -28,24 +28,21 @@ import org.geoserver.wfs.WFSInfo.ServiceLevel;
 import org.geoserver.wfs.WFSInfo.Version;
 import org.geoserver.wms.CacheConfiguration;
 import org.geoserver.wms.WatermarkInfoImpl;
-import org.geoserver.wps.ProcessGroupInfo;
-import org.geoserver.wps.ProcessInfo;
 import org.geotools.coverage.grid.io.OverviewPolicy;
-import org.geotools.jackson.databind.dto.NameDto;
 
 /** DTO for {@link ServiceInfo} */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonSubTypes({
-    @JsonSubTypes.Type(value = Service.WmsService.class),
-    @JsonSubTypes.Type(value = Service.WfsService.class),
-    @JsonSubTypes.Type(value = Service.WcsService.class),
-    @JsonSubTypes.Type(value = Service.WpsService.class),
-    @JsonSubTypes.Type(value = Service.WmtsService.class),
-    @JsonSubTypes.Type(value = Service.GenericService.class)
+    @JsonSubTypes.Type(value = ServiceInfoDto.WmsService.class),
+    @JsonSubTypes.Type(value = ServiceInfoDto.WfsService.class),
+    @JsonSubTypes.Type(value = ServiceInfoDto.WcsService.class),
+    @JsonSubTypes.Type(value = ServiceInfoDto.WpsService.class),
+    @JsonSubTypes.Type(value = ServiceInfoDto.WmtsService.class),
+    @JsonSubTypes.Type(value = ServiceInfoDto.GenericService.class)
 })
-public abstract class Service extends ConfigInfoDto {
+public abstract class ServiceInfoDto extends ConfigInfoDto {
     private String name;
     private String workspace;
     private boolean citeCompliant;
@@ -59,7 +56,7 @@ public abstract class Service extends ConfigInfoDto {
     private List<String> versions;
     private List<Keyword> keywords;
     private List<String> exceptionFormats;
-    private MetadataLink metadataLink;
+    private MetadataLinkInfoDto metadataLink;
     private String outputStrategy;
     private String schemaBaseURL;
     private boolean verbose;
@@ -84,13 +81,13 @@ public abstract class Service extends ConfigInfoDto {
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("ServiceInfo")
-    public static class GenericService extends Service {}
+    public static class GenericService extends ServiceInfoDto {}
 
     @Data
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("WMSInfo")
-    public static class WmsService extends Service {
+    public static class WmsService extends ServiceInfoDto {
         // Works well as POJO, no need to create a separate DTO
         private WatermarkInfoImpl watermark;
         // enum, direct use
@@ -157,7 +154,7 @@ public abstract class Service extends ConfigInfoDto {
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("WFSInfo")
-    public static class WfsService extends Service {
+    public static class WfsService extends ServiceInfoDto {
         private Map<Version, GMLInfoImpl> GML;
         private int maxFeatures;
         private ServiceLevel serviceLevel;
@@ -191,7 +188,7 @@ public abstract class Service extends ConfigInfoDto {
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("WCSInfo")
-    public static class WcsService extends Service {
+    public static class WcsService extends ServiceInfoDto {
         private boolean GMLPrefixing;
         private long maxInputMemory;
         private long maxOutputMemory;
@@ -207,12 +204,12 @@ public abstract class Service extends ConfigInfoDto {
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("WPSInfo")
-    public static class WpsService extends Service {
+    public static class WpsService extends ServiceInfoDto {
         private double connectionTimeout;
         private int resourceExpirationTimeout;
         private int maxSynchronousProcesses;
         private int maxAsynchronousProcesses;
-        private List<ProcessGroup> processGroups;
+        private List<ProcessGroupInfoDto> processGroups;
         private String storageDirectory;
         private CatalogMode catalogMode;
         private int maxComplexInputSize;
@@ -223,25 +220,6 @@ public abstract class Service extends ConfigInfoDto {
 
         private String externalOutputDirectory;
         private boolean remoteInputDisabled;
-
-        /** DTO for {@link ProcessGroupInfo} */
-        @Data
-        public static class ProcessGroup {
-            private String factoryClass;
-            private boolean isEnabled;
-            private List<WpsService.Process> filteredProcesses;
-            private MetadataMapDto metadata;
-            private List<String> roles;
-        }
-
-        /** DTO for {@link ProcessInfo} */
-        @Data
-        public static class Process {
-            private NameDto name;
-            private boolean enabled;
-            private List<String> roles;
-            private MetadataMapDto metadata;
-        }
     }
 
     /** DTO for {@link WMTSInfo} */
@@ -249,5 +227,5 @@ public abstract class Service extends ConfigInfoDto {
     @EqualsAndHashCode(callSuper = true)
     @ToString(callSuper = true)
     @JsonTypeName("WMTSInfo")
-    public static class WmtsService extends Service {}
+    public static class WmtsService extends ServiceInfoDto {}
 }

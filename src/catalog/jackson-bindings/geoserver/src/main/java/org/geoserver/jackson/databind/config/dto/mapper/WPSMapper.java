@@ -6,8 +6,8 @@ package org.geoserver.jackson.databind.config.dto.mapper;
 
 import lombok.Generated;
 import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
-import org.geoserver.jackson.databind.config.dto.Service;
-import org.geoserver.jackson.databind.config.dto.Service.WpsService.ProcessGroup;
+import org.geoserver.jackson.databind.config.dto.ProcessGroupInfoDto;
+import org.geoserver.jackson.databind.config.dto.ProcessInfoDto;
 import org.geoserver.wps.ProcessGroupInfo;
 import org.geoserver.wps.ProcessGroupInfoImpl;
 import org.geoserver.wps.ProcessInfo;
@@ -32,11 +32,11 @@ public interface WPSMapper {
         return new ProcessInfoImpl();
     }
 
-    ProcessInfo map(Service.WpsService.Process p);
+    ProcessInfo map(ProcessInfoDto p);
 
-    Service.WpsService.Process map(ProcessInfo p);
+    ProcessInfoDto map(ProcessInfo p);
 
-    ProcessGroup map(ProcessGroupInfo info);
+    ProcessGroupInfoDto map(ProcessGroupInfo info);
 
-    ProcessGroupInfo map(ProcessGroup dto);
+    ProcessGroupInfo map(ProcessGroupInfoDto dto);
 }

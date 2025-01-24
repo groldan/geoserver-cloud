@@ -6,12 +6,19 @@ package org.geoserver.jackson.databind.config.dto;
 
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.geoserver.config.ContactInfo;
+import org.geoserver.jackson.databind.catalog.dto.ValueObjectInfoDto;
 
 /** DTO for {@link ContactInfo} */
 @Data
-public class Contact {
-    private String id;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+// @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+// @JsonTypeName("ContactInfo")
+public class ContactInfoDto extends ValueObjectInfoDto {
+
     private String address;
     private String addressCity;
     private String addressCountry;

@@ -5,11 +5,17 @@
 package org.geoserver.jackson.databind.catalog.dto;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
-public class DataLink {
-    private String id;
-    private String about;
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+// @JsonTypeName("MetadataLinkInfo")
+public class MetadataLinkInfoDto extends ValueObjectInfoDto {
+
     private String type;
+    private String about;
+    private String metadataType;
     private String content;
 }

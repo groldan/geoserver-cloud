@@ -34,13 +34,14 @@ public interface StoreMapper {
     }
 
     default StoreInfo map(Store o) {
-        if (o == null) return null;
-        if (o instanceof DataStore ds) return map(ds);
-        if (o instanceof CoverageStore cs) return map(cs);
-        if (o instanceof WMSStore wms) return map(wms);
-        if (o instanceof WMTSStore wmts) return map(wmts);
-
-        throw new IllegalArgumentException("Unknown Store type: " + o);
+        return switch (o) {
+            case null -> null;
+            case DataStore ds -> map(ds);
+            case CoverageStore cs -> map(cs);
+            case WMSStore wms -> map(wms);
+            case WMTSStore wmts -> map(wmts);
+            default -> throw new IllegalArgumentException("Unknown Store type: " + o);
+        };
     }
 
     @Mapping(target = "error", ignore = true)

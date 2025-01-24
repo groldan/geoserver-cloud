@@ -4,10 +4,14 @@
  */
 package org.geotools.jackson.databind.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class CRS {
     private String srs;
+
+    @SuppressWarnings("java:S116")
+    @JsonProperty("wkt")
     private String WKT;
 }
