@@ -153,7 +153,7 @@ acceptance-tests-datadir: build-acceptance start-acceptance-tests-datadir run-ac
 
 .PHONY: start-acceptance-tests-datadir
 start-acceptance-tests-datadir:
-	(cd compose/ && ./acceptance_datadir up -d)
+	(cd compose/ && ./acceptance_datadir up -d --pull missing)
 
 .PHONY: run-acceptance-tests-datadir
 run-acceptance-tests-datadir:
@@ -168,7 +168,7 @@ acceptance-tests-pgconfig: build-acceptance start-acceptance-tests-pgconfig run-
 
 .PHONY: start-acceptance-tests-pgconfig
 start-acceptance-tests-pgconfig:
-	(cd compose/ && ./acceptance_pgconfig up -d)
+	(cd compose/ && ./acceptance_pgconfig up -d --pull missing)
 
 .PHONY: run-acceptance-tests-pgconfig
 run-acceptance-tests-pgconfig:
@@ -183,7 +183,7 @@ acceptance-tests-jdbcconfig: build-acceptance start-acceptance-tests-jdbcconfig 
 
 .PHONY: start-acceptance-tests-jdbcconfig
 start-acceptance-tests-jdbcconfig:
-	(cd compose/ && ./acceptance_jdbcconfig up -d)
+	(cd compose/ && ./acceptance_jdbcconfig up -d --pull missing)
 
 .PHONY: run-acceptance-tests-jdbcconfig
 run-acceptance-tests-jdbcconfig:
