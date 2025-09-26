@@ -14,7 +14,6 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.ToString;
 import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.ResourceListener;
@@ -23,12 +22,20 @@ import org.geoserver.platform.resource.ResourceListener;
  * @since 1.4
  */
 @EqualsAndHashCode(exclude = {"store", "lastChecked"})
-@ToString(exclude = "store")
 class PgconfigResource implements Resource {
 
+    /**
+     * Database record identifier
+     *
+     * @see PgconfigResourceStore#ROOT_ID
+     * @see PgconfigResourceStore#UNDEFINED_ID
+     */
     @Getter
     long id;
 
+    /**
+     * Database record identifier of the parent resource
+     */
     @Getter
     long parentId;
 
@@ -144,11 +151,7 @@ class PgconfigResource implements Resource {
 
     @Override
     public Resource get(@NonNull String childPath) {
-        if ("".equals(childPath)) {
-            return this;
-        }
-        String resourcePath = Paths.path(path(), childPath);
-        return store.get(resourcePath);
+        return store.getChild(this, childPath);
     }
 
     @Override
@@ -210,12 +213,12 @@ class PgconfigResource implements Resource {
 
     @Override
     public void addListener(ResourceListener listener) {
-        // no-op
+        store.addListener(path(), listener);
     }
 
     @Override
     public void removeListener(ResourceListener listener) {
-        // no-op
+        store.removeListener(path(), listener);
     }
 
     /**
