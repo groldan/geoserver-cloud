@@ -21,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -38,6 +40,10 @@ import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
 import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
+import org.geoserver.platform.resource.ResourceListener;
+import org.geoserver.platform.resource.ResourceNotification;
+import org.geoserver.platform.resource.ResourceNotification.Event;
+import org.geoserver.platform.resource.ResourceNotification.Kind;
 import org.geoserver.platform.resource.ResourceTheoryTest;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -522,10 +528,7 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
         PgconfigResource resource = (PgconfigResource) store.get(path);
 
         // Write initial content
-        byte[] initialContent = "initial=content".getBytes();
-        try (OutputStream out = resource.out()) {
-            out.write(initialContent);
-        }
+        resource.setContents("initial=content".getBytes());
 
         // Verify it exists as a file
         assertEquals(RESOURCE, resource.getType());
@@ -533,7 +536,7 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
         assertTrue(resource.isFile());
 
         // Get resource ID and initial lastmodified timestamp
-        long resourceId = resource.getId();
+        final long resourceId = resource.getId();
         assertTrue(resourceId > 0);
         long initialLastModified = resource.lastmodified();
 
@@ -567,5 +570,55 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
         assertEquals(resourceId, resource.getId());
         assertTrue(resource.exists());
         assertTrue(resource.isFile());
+    }
+
+    @Test
+    public void testEvents() throws IOException {
+        List<ResourceNotification> captured = new ArrayList<>();
+        ResourceListener capturingListener = captured::add;
+        store.addListener("", capturingListener);
+        store.addListener("dir/subdir", capturingListener);
+
+        Resource dir = store.get("dir");
+        dir.dir();
+        assertEvents(captured.get(0).events(), created("dir"));
+
+        Resource subdir = dir.get("subdir");
+        subdir.dir();
+
+        // get(path).setContents() leads to a single create event
+        store.get("dir/subdir/test").setContents("test".getBytes(StandardCharsets.UTF_8));
+
+        // get(path).file() followed by setContents() leads to one create and one modify event
+        Resource file = subdir.get("file");
+        file.file();
+        file.setContents("modified".getBytes(StandardCharsets.UTF_8));
+
+        captured.forEach(System.out::println);
+
+        assertEquals(5, captured.size());
+        assertEvents(captured.get(0), "", Kind.ENTRY_MODIFY, created("dir"));
+        assertEvents(captured.get(1), "dir/subdir", Kind.ENTRY_CREATE, created("dir/subdir"));
+        assertEvents(captured.get(2), "dir/subdir", Kind.ENTRY_MODIFY, created("test"));
+        assertEvents(captured.get(3), "dir/subdir", Kind.ENTRY_MODIFY, created("file"));
+        assertEvents(captured.get(4), "dir/subdir", Kind.ENTRY_MODIFY, modified("file"));
+    }
+
+    private void assertEvents(ResourceNotification captured, String path, Kind kind, Event... expected) {
+        assertEquals(path, captured.getPath());
+        assertEquals(kind, captured.getKind());
+        assertEvents(captured.events(), expected);
+    }
+
+    private void assertEvents(List<Event> captured, Event... expected) {
+        assertEquals(List.of(expected), captured);
+    }
+
+    private ResourceNotification.Event created(String path) {
+        return new ResourceNotification.Event(path, Kind.ENTRY_CREATE);
+    }
+
+    private ResourceNotification.Event modified(String path) {
+        return new ResourceNotification.Event(path, Kind.ENTRY_MODIFY);
     }
 }

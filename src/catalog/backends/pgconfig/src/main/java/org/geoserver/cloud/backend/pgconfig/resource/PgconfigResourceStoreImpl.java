@@ -7,6 +7,7 @@ package org.geoserver.cloud.backend.pgconfig.resource;
 
 import static org.geoserver.platform.resource.ResourceNotification.Kind.ENTRY_DELETE;
 import static org.geoserver.platform.resource.SimpleResourceNotificationDispatcher.createEvents;
+import static org.geoserver.platform.resource.SimpleResourceNotificationDispatcher.createRenameEvents;
 
 import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
@@ -32,6 +33,7 @@ import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
 import org.geoserver.platform.resource.ResourceListener;
 import org.geoserver.platform.resource.ResourceNotification;
+import org.geoserver.platform.resource.ResourceNotification.Kind;
 import org.geoserver.platform.resource.ResourceNotificationDispatcher;
 import org.geoserver.platform.resource.SimpleResourceNotificationDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -165,7 +167,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
     }
 
     public static Predicate<String> defaultIgnoredDirs() {
-        return PgconfigResourceStoreImpl.simplePathMatcher("temp", "tmp", "legendsamples", "logs");
+        return PgconfigResourceStoreImpl.simplePathMatcher("temp", "tmp", "legendsamples", "logs", "data");
     }
 
     public static Predicate<String> simplePathMatcher(String... paths) {
@@ -297,7 +299,11 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         return new ByteArrayOutputStream() {
             @Override
             public void close() {
-                if (!resource.exists()) {
+                ResourceNotification.Kind eventKind;
+                if (resource.exists()) {
+                    eventKind = Kind.ENTRY_MODIFY;
+                } else {
+                    eventKind = Kind.ENTRY_CREATE;
                     String path = resource.path();
                     transactionalReference.save(resource);
                     PgconfigResource saved = findByPath(path).orElseThrow();
@@ -307,6 +313,9 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
                 long mtime = transactionalReference.save(resource, contents);
                 resource.lastmodified = mtime;
                 cache.dump(resource, new ByteArrayInputStream(contents));
+
+                ResourceNotification.Event event = new ResourceNotification.Event(resource.path(), eventKind);
+                publish(resource, eventKind, List.of(event));
             }
         };
     }
@@ -318,10 +327,6 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
      */
     @Override
     public void save(@NonNull PgconfigResource resource) {
-        if (resource.isUndefined()) {
-            throw new IllegalArgumentException(
-                    "Attempting to save a resource of undefined type: %s".formatted(resource));
-        }
         if (resource.exists()) {
             String sql =
                     """
@@ -334,6 +339,12 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
             String path = resource.path();
             template.update(sql, parentId, type, path, id);
         } else {
+            // not calling resource.isUndefined() to avoid querying the getType() -> updateState()
+            final Type type = resource.type;
+            if (type == Type.UNDEFINED) {
+                throw new IllegalArgumentException(
+                        "Attempting to save a resource of undefined type: %s".formatted(resource));
+            }
             PgconfigResource parent = resource.parent().mkdirs();
             String sql =
                     """
@@ -346,11 +357,10 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
                     """;
 
             long parentId = parent.getId();
-            String type = resource.getType().toString();
             String path = resource.path();
-            byte[] contents = resource.getType() == Type.DIRECTORY ? null : new byte[0];
+            byte[] contents = type == Type.DIRECTORY ? null : new byte[0];
 
-            template.update(sql, parentId, type, path, contents);
+            template.update(sql, parentId, type.toString(), path, contents);
         }
         PgconfigResource updated = (PgconfigResource) get(resource.path);
         resource.id = updated.getId();
@@ -444,26 +454,44 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         if (source.path().equals(target.path())) {
             return true;
         }
-
-        if (target.exists()) {
-            target.delete();
-        }
         final String parentPath = target.parentPath();
         if (null != parentPath && parentPath.contains(source.path())) {
             log.warn("Cannot rename a resource to a descendant of itself ({} to {})", source.path(), target.path());
             return false;
         }
+
+        final List<ResourceNotification.Event> eventsDelete;
+        final List<ResourceNotification.Event> eventsRename;
+        eventsDelete = createEvents(source, ENTRY_DELETE);
+        eventsRename = createRenameEvents(source, target);
+
+        ResourceNotification.Kind targetEvent = doMove(source, target);
+
+        publish(source, ENTRY_DELETE, eventsDelete);
+        publish(source, targetEvent, eventsRename);
+
+        return true;
+    }
+
+    private Kind doMove(final PgconfigResource source, final PgconfigResource target) {
         final List<PgconfigResource> allChildren = findAllChildren(source);
         PgconfigResource parent = target.parent().mkdirs();
-        PgconfigResource save = new PgconfigResource(
+        PgconfigResource renamed = new PgconfigResource(
                 transactionalReference,
                 source.getId(),
                 parent.getId(),
                 source.getType(),
                 target.path(),
                 source.lastmodified());
-        transactionalReference.save(save);
-        target.copy(save);
+
+        ResourceNotification.Kind targetEvent = Kind.ENTRY_CREATE;
+        if (target.exists()) {
+            deleteQuietly(target);
+            targetEvent = Kind.ENTRY_MODIFY;
+        }
+
+        transactionalReference.save(renamed);
+        target.copy(renamed);
         source.type = Type.UNDEFINED;
 
         final String oldParentPath = source.path();
@@ -477,7 +505,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         }
 
         cache.moved(source, target);
-        return true;
+        return targetEvent;
     }
 
     List<PgconfigResource> findAllChildren(PgconfigResource resource) {
@@ -523,17 +551,21 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
     public boolean delete(PgconfigResource resource) {
 
         List<ResourceNotification.Event> events = createEvents(resource, ENTRY_DELETE);
+        final boolean deleted = deleteQuietly(resource);
+        if (deleted) {
+            resource.type = Type.UNDEFINED;
+            publish(resource, ENTRY_DELETE, events);
+        }
+        return deleted;
+    }
 
+    /**
+     * Deletes the resource and all its children without issuing events
+     */
+    private boolean deleteQuietly(PgconfigResource resource) {
         final String sql = "DELETE FROM resourcestore WHERE id = ?";
         final int deleteCount = template.update(sql, resource.getId());
         final boolean deleted = deleteCount > 0;
-        if (deleted) {
-            resource.type = Type.UNDEFINED;
-            String path = resource.path();
-            long timestamp = System.currentTimeMillis();
-            ResourceNotification notification = new ResourceNotification(path, ENTRY_DELETE, timestamp, events);
-            dispatcher.changed(notification);
-        }
         return deleted;
     }
 
@@ -573,6 +605,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         if (!resource.exists()) {
             resource.type = Type.RESOURCE;
             transactionalReference.save(resource);
+            publish(resource, Kind.ENTRY_CREATE, createEvents(resource, Kind.ENTRY_CREATE));
         }
         return cache.getFile(resource);
     }
@@ -586,6 +619,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         if (!resource.exists()) {
             resource.type = Type.DIRECTORY;
             transactionalReference.save(resource);
+            publish(resource, Kind.ENTRY_CREATE, createEvents(resource, Kind.ENTRY_CREATE));
         }
         return cache.getDirectory(resource);
     }
@@ -611,5 +645,16 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         PgconfigResource saved = (PgconfigResource) get(resource.path());
         resource.copy(saved);
         return resource;
+    }
+
+    private void publish(
+            PgconfigResource resource, ResourceNotification.Kind kind, List<ResourceNotification.Event> events) {
+        if (!events.isEmpty()) {
+            String path = resource.path();
+            long timestamp = System.currentTimeMillis();
+            ResourceNotification notification = new ResourceNotification(path, kind, timestamp, events);
+            System.err.println(notification);
+            dispatcher.changed(notification);
+        }
     }
 }
