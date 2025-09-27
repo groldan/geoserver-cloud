@@ -5,6 +5,7 @@
 
 package org.geoserver.cloud.backend.pgconfig.config;
 
+import com.google.common.annotations.VisibleForTesting;
 import lombok.NonNull;
 import org.geoserver.config.plugin.RepositoryGeoServerFacadeImpl;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,11 +15,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 public class PgconfigGeoServerFacade extends RepositoryGeoServerFacadeImpl {
 
-    public PgconfigGeoServerFacade(@NonNull JdbcTemplate template) {
-        super(new PgconfigConfigRepository(template));
-    }
-
     public PgconfigGeoServerFacade(@NonNull PgconfigConfigRepository repo) {
         super(repo);
+    }
+
+    @VisibleForTesting
+    public PgconfigGeoServerFacade(@NonNull JdbcTemplate template) {
+        super(new PgconfigConfigRepositoryImpl(template));
     }
 }

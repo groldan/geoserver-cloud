@@ -11,19 +11,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.geoserver.GeoServerConfigurationLock;
 import org.geoserver.catalog.plugin.ExtendedCatalogFacade;
 import org.geoserver.catalog.plugin.locking.LockProviderGeoServerConfigurationLock;
-import org.geoserver.cloud.backend.pgconfig.PgconfigBackendBuilder;
+import org.geoserver.cloud.backend.pgconfig.catalog.PgconfigCatalogFacade;
 import org.geoserver.cloud.backend.pgconfig.config.PgconfigConfigRepository;
+import org.geoserver.cloud.backend.pgconfig.config.PgconfigConfigRepositoryImpl;
 import org.geoserver.cloud.backend.pgconfig.config.PgconfigGeoServerFacade;
 import org.geoserver.cloud.backend.pgconfig.config.PgconfigUpdateSequence;
 import org.geoserver.cloud.backend.pgconfig.resource.FileSystemResourceStoreCache;
 import org.geoserver.cloud.backend.pgconfig.resource.PgconfigLockProvider;
 import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStore;
+import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStoreImpl;
 import org.geoserver.cloud.config.catalog.backend.core.GeoServerBackendConfigurer;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.DatabaseMigrationConfiguration.Migrations;
 import org.geoserver.config.GeoServerLoader;
-import org.geoserver.platform.GeoServerResourceLoader;
-import org.geoserver.platform.resource.LockProvider;
-import org.geoserver.platform.resource.ResourceStore;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,14 +31,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.integration.jdbc.lock.LockRepository;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.StringUtils;
 
 /**
  * @since 1.4
  */
-@Configuration(proxyBeanMethods = true)
+@Configuration(proxyBeanMethods = false)
 @Slf4j(topic = "org.geoserver.cloud.config.catalog.backend.pgconfig")
 public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
 
@@ -66,57 +64,54 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
                 migrations);
     }
 
-    @Bean
-    @Override
-    protected ExtendedCatalogFacade catalogFacade() {
-        return new PgconfigBackendBuilder(dataSource).createCatalogFacade();
-    }
-
     @Bean(name = "pcconfigJdbcTemplate")
     JdbcTemplate template() {
         return new JdbcTemplate(dataSource);
     }
 
     @Bean
-    @Override
-    protected GeoServerConfigurationLock configurationLock() {
-        LockProvider lockProvider = pgconfigLockProvider();
+    protected ExtendedCatalogFacade catalogFacade(@Qualifier("pcconfigJdbcTemplate") JdbcTemplate template) {
+        return new PgconfigCatalogFacade(template);
+    }
+
+    @Bean
+    protected GeoServerConfigurationLock configurationLock(PgconfigLockProvider lockProvider) {
         return new LockProviderGeoServerConfigurationLock(lockProvider);
     }
 
     @Bean
-    @Override
-    protected PgconfigUpdateSequence updateSequence() {
-        return new PgconfigUpdateSequence(dataSource, geoserverFacade());
+    protected PgconfigUpdateSequence updateSequence(PgconfigGeoServerFacade geoserverFacade) {
+        return new PgconfigUpdateSequence(dataSource, geoserverFacade);
     }
 
     @Bean
-    @Override
-    protected GeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
+    protected GeoServerLoader geoServerLoaderImpl(
+            GeoServerSecurityManager securityManager,
+            PgconfigGeoServerResourceLoader resourceLoader,
+            GeoServerConfigurationLock configurationLock) {
         log.debug("Creating GeoServerLoader {}", PgconfigGeoServerLoader.class.getSimpleName());
-        return new PgconfigGeoServerLoader(resourceLoader(), configurationLock());
+        return new PgconfigGeoServerLoader(resourceLoader, configurationLock);
     }
 
     @Bean
-    PgconfigConfigRepository configRepository() {
-        return new PgconfigConfigRepository(template());
+    PgconfigConfigRepository configRepository(@Qualifier("pcconfigJdbcTemplate") JdbcTemplate template) {
+        return new PgconfigConfigRepositoryImpl(template);
     }
 
     @Bean
-    @Override
-    protected PgconfigGeoServerFacade geoserverFacade() {
-        return new PgconfigGeoServerFacade(configRepository());
+    protected PgconfigGeoServerFacade geoserverFacade(PgconfigConfigRepository configRepository) {
+        return new PgconfigGeoServerFacade(configRepository);
     }
 
     @Bean
-    @Override
-    protected ResourceStore resourceStoreImpl() {
+    protected PgconfigResourceStore resourceStoreImpl(
+            @Qualifier("pcconfigJdbcTemplate") JdbcTemplate template,
+            PgconfigLockProvider lockProvider,
+            FileSystemResourceStoreCache resourceStoreCache) {
+
         log.debug("Creating ResourceStore {}", PgconfigResourceStore.class.getSimpleName());
-        FileSystemResourceStoreCache resourceStoreCache = pgconfigFileSystemResourceStoreCache();
-        JdbcTemplate template = template();
-        PgconfigLockProvider lockProvider = pgconfigLockProvider();
-        Predicate<String> localOnlyFilter = PgconfigResourceStore.defaultIgnoredResources();
-        return new PgconfigResourceStore(resourceStoreCache, template, lockProvider, localOnlyFilter);
+        Predicate<String> localOnlyFilter = PgconfigResourceStoreImpl.defaultIgnoredResources();
+        return new PgconfigResourceStoreImpl(resourceStoreCache, template, lockProvider, localOnlyFilter);
     }
 
     @Bean
@@ -125,25 +120,18 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
     }
 
     @Bean
-    @Override
-    protected GeoServerResourceLoader resourceLoader() {
+    protected PgconfigGeoServerResourceLoader resourceLoader(
+            @Qualifier("resourceStoreImpl") PgconfigResourceStore resourceStore) {
         log.debug("Creating GeoServerResourceLoader {}", PgconfigGeoServerResourceLoader.class.getSimpleName());
-        ResourceStore resourceStore = resourceStoreImpl();
         return new PgconfigGeoServerResourceLoader(resourceStore);
     }
 
     @Bean
-    PgconfigLockProvider pgconfigLockProvider() {
+    PgconfigLockProvider pgconfigLockProvider(
+            @Qualifier("pgconfigLockRepository") LockRepository pgconfigLockRepository) {
         log.debug("Creating {}", PgconfigLockProvider.class.getSimpleName());
-        return new PgconfigLockProvider(pgconfigLockRegistry());
-    }
-
-    /**
-     * @return
-     */
-    private LockRegistry pgconfigLockRegistry() {
-        log.debug("Creating {}", LockRegistry.class.getSimpleName());
-        return new JdbcLockRegistry(pgconfigLockRepository());
+        JdbcLockRegistry lockRegistry = new JdbcLockRegistry(pgconfigLockRepository);
+        return new PgconfigLockProvider(lockRegistry);
     }
 
     @Bean

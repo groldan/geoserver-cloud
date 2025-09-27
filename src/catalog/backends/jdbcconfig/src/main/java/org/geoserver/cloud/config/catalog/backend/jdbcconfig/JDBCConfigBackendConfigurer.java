@@ -125,7 +125,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
     }
 
     @DependsOn("jdbcConfigDataSourceStartupValidator")
-    protected @Bean @Override UpdateSequence updateSequence() {
+    protected @Bean UpdateSequence updateSequence() {
         DataSource dataSource = jdbcConfigDataSource();
         CloudJdbcConfigProperties props = jdbcConfigProperties();
         GeoServerFacade geoserverFacade = geoserverFacade();
@@ -133,7 +133,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
         return new JdbcConfigUpdateSequence(dataSource, props, geoserverFacade, db);
     }
 
-    protected @Bean @Override GeoServerConfigurationLock configurationLock() {
+    protected @Bean GeoServerConfigurationLock configurationLock() {
         return new GeoServerConfigurationLock();
     }
 
@@ -160,7 +160,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
     }
 
     @DependsOn({"extensions", "jdbcConfigDataSourceStartupValidator"})
-    protected @Bean @Override GeoServerResourceLoader resourceLoader() {
+    protected @Bean GeoServerResourceLoader resourceLoader() {
         JdbcConfigConfigurationProperties configProperties = this.jdbcconfigConfig;
         Path path = configProperties.getCacheDirectory();
         File dataDirectory = path == null ? null : path.toFile();
@@ -171,7 +171,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
 
     @DependsOn({"extensions", "JDBCConfigDB", "jdbcConfigDataSourceStartupValidator", "noopCacheProvider"})
     @Bean(name = {"resourceStoreImpl"})
-    protected @Override ResourceStore resourceStoreImpl() {
+    protected ResourceStore resourceStoreImpl() {
 
         System.setProperty(DefaultCacheProvider.BEAN_NAME_PROPERTY, "noopCacheProvider");
 
@@ -222,7 +222,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
 
     @DependsOn("jdbcConfigDataSourceStartupValidator")
     @Bean(name = {"catalogFacade", "JDBCCatalogFacade"})
-    protected @Override ExtendedCatalogFacade catalogFacade() {
+    protected ExtendedCatalogFacade catalogFacade() {
         ConfigDatabase configDB = jdbcConfigDB();
         JDBCConfigProperties catalogConfig = jdbcConfigProperties();
         CloudJdbcStoreProperties storeConfig = jdbcStoreProperties();
@@ -241,7 +241,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
 
     @DependsOn("jdbcConfigDataSourceStartupValidator")
     @Bean(name = {"geoserverFacade", "JDBCGeoServerFacade"})
-    protected @Override GeoServerFacade geoserverFacade() {
+    protected GeoServerFacade geoserverFacade() {
         initDbSchema(jdbcConfigProperties(), jdbcStoreProperties(), jdbcConfigDB());
         ConfigDatabase configDB = jdbcConfigDB();
         return new CloudJdbcGeoserverFacade(configDB);
@@ -258,7 +258,7 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
         "wpsServiceLoader",
         "wmtsLoader"
     })
-    protected @Override CloudJdbcGeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
+    protected CloudJdbcGeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
         JDBCConfigProperties config = jdbcConfigProperties();
         ConfigDatabase configdb = jdbcConfigDB();
         try {
@@ -314,7 +314,6 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
                         super(ds);
                     }
 
-                    @Override
                     public void runScript(Resource script) {
                         super.runScript(script);
                     }
@@ -346,7 +345,6 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
                     CacheBuilder.newBuilder().maximumSize(0).build();
 
             @SuppressWarnings("unchecked")
-            @Override
             public <K extends Serializable, V extends Serializable> Cache<K, V> getCache(String cacheName) {
                 return noOpCache;
             }
@@ -357,7 +355,6 @@ public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {
 
         private final ConcurrentMap<String, Cache<?, ?>> caches = new ConcurrentHashMap<>();
 
-        @Override
         @SuppressWarnings("unchecked")
         public <K extends Serializable, V extends Serializable> Cache<K, V> getCache(@NonNull String cacheName) {
 

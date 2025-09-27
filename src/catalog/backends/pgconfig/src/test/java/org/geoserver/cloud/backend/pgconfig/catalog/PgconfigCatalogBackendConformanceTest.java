@@ -6,6 +6,7 @@
 package org.geoserver.cloud.backend.pgconfig.catalog;
 
 import java.io.File;
+import java.util.function.Predicate;
 import javax.sql.DataSource;
 import org.geoserver.catalog.impl.CatalogImpl;
 import org.geoserver.catalog.plugin.CatalogConformanceTest;
@@ -15,6 +16,7 @@ import org.geoserver.cloud.backend.pgconfig.PgconfigBackendBuilder;
 import org.geoserver.cloud.backend.pgconfig.resource.FileSystemResourceStoreCache;
 import org.geoserver.cloud.backend.pgconfig.resource.PgconfigLockProvider;
 import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStore;
+import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStoreImpl;
 import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.PgconfigGeoServerResourceLoader;
 import org.geotools.util.logging.Logging;
@@ -57,8 +59,9 @@ class PgconfigCatalogBackendConformanceTest extends CatalogConformanceTest {
         PgconfigLockProvider lockProvider = new PgconfigLockProvider(pgconfigLockRegistry());
         File cacheDirectory = tmpFolder;
         FileSystemResourceStoreCache cache = FileSystemResourceStoreCache.ofProvidedDirectory(cacheDirectory.toPath());
-        PgconfigResourceStore resourceStore = new PgconfigResourceStore(
-                cache, template, lockProvider, PgconfigResourceStore.defaultIgnoredResources());
+        Predicate<String> defaultIgnoredResources = PgconfigResourceStoreImpl.defaultIgnoredResources();
+        PgconfigResourceStore resourceStore =
+                new PgconfigResourceStoreImpl(cache, template, lockProvider, defaultIgnoredResources);
 
         var resourceLoader = new PgconfigGeoServerResourceLoader(resourceStore);
         CatalogPlugin catalog = new PgconfigBackendBuilder(container.getDataSource()).createCatalog();

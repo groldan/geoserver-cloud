@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +64,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  */
 @Slf4j
 @RunWith(Theories.class)
-public class PgconfigResourceTest extends ResourceTheoryTest {
+public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
 
     @ClassRule
     public static PgConfigTestContainer<?> container = new PgConfigTestContainer<>();
@@ -109,8 +110,8 @@ public class PgconfigResourceTest extends ResourceTheoryTest {
         PgconfigLockProvider lockProvider = new PgconfigLockProvider(pgconfigLockRegistry());
         cacheDirectory = tmpDir.newFolder();
         FileSystemResourceStoreCache cache = FileSystemResourceStoreCache.ofProvidedDirectory(cacheDirectory.toPath());
-        store = new PgconfigResourceStore(
-                cache, template, lockProvider, PgconfigResourceStore.defaultIgnoredResources());
+        Predicate<String> defaultIgnoredResources = PgconfigResourceStoreImpl.defaultIgnoredResources();
+        store = new PgconfigResourceStoreImpl(cache, template, lockProvider, defaultIgnoredResources);
         setupTestData(template);
     }
 
@@ -283,14 +284,14 @@ public class PgconfigResourceTest extends ResourceTheoryTest {
         Resource resource = getResource(path);
         assertFileSystemDir(resource.parent().path());
         assertFalse(resource instanceof PgconfigResource);
-        assertTrue(resource instanceof PgconfigResourceStore.FileSystemResourceAdaptor);
+        assertTrue(resource instanceof PgconfigResourceStoreImpl.FileSystemResourceAdaptor);
         assertTrue(resource.file().getAbsolutePath().startsWith(this.cacheDirectory.getAbsolutePath()));
     }
 
     private void assertFileSystemDir(String path) {
         Resource resource = getResource(path);
         assertFalse(resource instanceof PgconfigResource);
-        assertTrue(resource instanceof PgconfigResourceStore.FileSystemResourceAdaptor);
+        assertTrue(resource instanceof PgconfigResourceStoreImpl.FileSystemResourceAdaptor);
         assertTrue(resource.dir().getAbsolutePath().startsWith(this.cacheDirectory.getAbsolutePath()));
     }
 

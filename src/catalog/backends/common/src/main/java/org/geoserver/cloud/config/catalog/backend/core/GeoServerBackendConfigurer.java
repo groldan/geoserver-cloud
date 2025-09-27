@@ -13,7 +13,6 @@ import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.config.UpdateSequence;
 import org.geoserver.platform.resource.ResourceStore;
 import org.geoserver.platform.resource.ResourceStoreFactory;
-import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
@@ -34,25 +33,20 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
  * enable/disable itself based on the required criteria, for example, using {@link
  * ConditionalOnProperty @ConditionalOnProperty}, {@link ConditionalOnClass @ConditionalOnClass},
  * etc.
+ *
+ * <p> In order to allow implementations to handle dependency management as they deem appropriate, this
+ * is a marker interface establishing a convention where implementors shall provide Spring beans of the following types and names:
+ * <ul>
+ * <li> {@link GeoServerConfigurationLock}: {@code configurationLock}
+ * <li> {@link UpdateSequence}: {@code updateSequence}
+ * <li> {@link ExtendedCatalogFacade}: {@code catalogFacade}
+ * <li> {@link GeoServerLoader}: {@code geoServerLoaderImpl}
+ * <li> {@link GeoServerFacade}: {@code geoserverFacade}
+ * <li> {@link ResourceStore}: {@code resourceStoreImpl},
+ * {@link ResourceStore} named {@code resourceStoreImpl}, as looked up in the application
+ * context by {@link ResourceStoreFactory}. With this, we don't need a bean called
+ * "dataDirectoryResourceStore" at all.
+ * <li> {@link GeoServerResourceLoader}: {@code resourceLoader}
+ * </ul>
  */
-public abstract class GeoServerBackendConfigurer {
-
-    protected abstract GeoServerConfigurationLock configurationLock();
-
-    protected abstract UpdateSequence updateSequence();
-
-    protected abstract ExtendedCatalogFacade catalogFacade();
-
-    protected abstract GeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager);
-
-    protected abstract GeoServerFacade geoserverFacade();
-
-    /**
-     * {@link ResourceStore} named {@code resourceStoreImpl}, as looked up in the application
-     * context by {@link ResourceStoreFactory}. With this, we don't need a bean called
-     * "dataDirectoryResourceStore" at all.
-     */
-    protected abstract ResourceStore resourceStoreImpl();
-
-    protected abstract GeoServerResourceLoader resourceLoader();
-}
+public abstract class GeoServerBackendConfigurer {}

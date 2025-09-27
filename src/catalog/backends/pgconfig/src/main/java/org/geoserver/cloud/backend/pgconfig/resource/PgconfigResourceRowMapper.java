@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.geoserver.platform.resource.Resource;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -18,7 +19,7 @@ import org.springframework.jdbc.core.RowMapper;
 @RequiredArgsConstructor
 public class PgconfigResourceRowMapper implements RowMapper<PgconfigResource> {
 
-    private final @NonNull PgconfigResourceStore store;
+    private @Setter @NonNull PgconfigResourceStore store;
 
     /**
      * Expects the following columns:
