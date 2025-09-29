@@ -22,10 +22,12 @@ import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStore;
 import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStoreImpl;
 import org.geoserver.cloud.config.catalog.backend.core.GeoServerBackendConfigurer;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.DatabaseMigrationConfiguration.Migrations;
+import org.geoserver.cloud.event.resource.ApplicationEventResourceNotificationDispatcher;
 import org.geoserver.config.GeoServerLoader;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
@@ -107,11 +109,21 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
     protected PgconfigResourceStore resourceStoreImpl(
             @Qualifier("pcconfigJdbcTemplate") JdbcTemplate template,
             PgconfigLockProvider lockProvider,
-            FileSystemResourceStoreCache resourceStoreCache) {
+            FileSystemResourceStoreCache resourceStoreCache,
+            ApplicationEventResourceNotificationDispatcher eventPublisher) {
 
         log.debug("Creating ResourceStore {}", PgconfigResourceStore.class.getSimpleName());
         Predicate<String> localOnlyFilter = PgconfigResourceStoreImpl.defaultIgnoredResources();
-        return new PgconfigResourceStoreImpl(resourceStoreCache, template, lockProvider, localOnlyFilter);
+        PgconfigResourceStoreImpl store =
+                new PgconfigResourceStoreImpl(resourceStoreCache, template, lockProvider, localOnlyFilter);
+        store.setResourceNotificationDispatcher(eventPublisher);
+        return store;
+    }
+
+    @Bean
+    ApplicationEventResourceNotificationDispatcher applicationEventResourceNotificationDispatcher(
+            ApplicationEventPublisher eventPublisher) {
+        return new ApplicationEventResourceNotificationDispatcher(eventPublisher);
     }
 
     @Bean

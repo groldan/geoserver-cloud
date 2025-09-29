@@ -17,12 +17,17 @@ import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.Info;
 import org.geoserver.cloud.event.info.ConfigInfoType;
 import org.geoserver.cloud.event.lifecycle.LifecycleEvent;
+import org.geoserver.cloud.event.resource.ResourceStoreEvent;
 import org.geoserver.config.GeoServerInfo;
 import org.geoserver.config.LoggingInfo;
 import org.springframework.core.style.ToStringCreator;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
-@JsonSubTypes({@JsonSubTypes.Type(value = UpdateSequenceEvent.class), @JsonSubTypes.Type(value = LifecycleEvent.class)})
+@JsonSubTypes({
+    @JsonSubTypes.Type(value = UpdateSequenceEvent.class),
+    @JsonSubTypes.Type(value = LifecycleEvent.class),
+    @JsonSubTypes.Type(value = ResourceStoreEvent.class)
+})
 @SuppressWarnings("serial")
 public abstract class GeoServerEvent implements Serializable {
 
@@ -33,7 +38,7 @@ public abstract class GeoServerEvent implements Serializable {
     private @Setter @Getter String origin;
 
     /** System time when the event happened. */
-    private @Getter long timestamp;
+    protected @Getter long timestamp;
 
     private @Getter String author;
 

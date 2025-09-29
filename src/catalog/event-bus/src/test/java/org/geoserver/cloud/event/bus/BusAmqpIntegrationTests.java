@@ -99,7 +99,7 @@ public abstract class BusAmqpIntegrationTests {
     private static final RabbitMQContainer rabbitMQContainer = new RabbitMQContainer("rabbitmq:4-management-alpine");
 
     protected static ConfigurableApplicationContext remoteAppContext;
-    private @Autowired ConfigurableApplicationContext localAppContext;
+    protected @Autowired ConfigurableApplicationContext localAppContext;
 
     protected @Autowired GeoServer geoserver;
     protected @Autowired CatalogPlugin catalog;
@@ -423,7 +423,7 @@ public abstract class BusAmqpIntegrationTests {
         final @Getter BusEventCollector local;
         final @Getter BusEventCollector remote;
 
-        public <E extends InfoEvent> EventsCaptor captureEventsOf(Class<E> type) {
+        public <E extends GeoServerEvent> EventsCaptor captureEventsOf(Class<E> type) {
             local.capture(type);
             remote.capture(type);
             return this;

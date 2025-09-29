@@ -11,6 +11,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.geoserver.platform.resource.Resource;
+import org.geoserver.platform.resource.Resource.Type;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -44,5 +45,26 @@ public class PgconfigResourceRowMapper implements RowMapper<PgconfigResource> {
 
     public PgconfigResource undefined(String path) {
         return PgconfigResource.undefined(store, path);
+    }
+
+    static PgconfigResourceRowMapper withContent(PgconfigResourceStore store) {
+        return new PgconfigResourceRowMapperWithContent(store);
+    }
+
+    private static class PgconfigResourceRowMapperWithContent extends PgconfigResourceRowMapper {
+
+        public PgconfigResourceRowMapperWithContent(@NonNull PgconfigResourceStore store) {
+            super(store);
+        }
+
+        @Override
+        public PgconfigResource mapRow(ResultSet rs, int rowNum) throws SQLException {
+            PgconfigResource resource = super.mapRow(rs, rowNum);
+            if (resource.type == Type.RESOURCE) {
+                byte[] content = rs.getBytes("content");
+                resource.content = content;
+            }
+            return resource;
+        }
     }
 }

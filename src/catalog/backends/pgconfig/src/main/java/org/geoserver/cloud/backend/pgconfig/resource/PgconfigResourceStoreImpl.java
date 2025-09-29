@@ -13,8 +13,10 @@ import com.google.common.base.Preconditions;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Timestamp;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
+import org.geoserver.cloud.event.resource.ResourceStoreEvent;
 import org.geoserver.platform.resource.LockProvider;
 import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
@@ -38,16 +41,17 @@ import org.geoserver.platform.resource.ResourceNotificationDispatcher;
 import org.geoserver.platform.resource.SimpleResourceNotificationDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @since 1.4
  */
-@Slf4j
+@Slf4j(topic = "org.geoserver.cloud.backend.pgconfig.resource")
 public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
 
-    private final ResourceNotificationDispatcher dispatcher = new SimpleResourceNotificationDispatcher();
+    private ResourceNotificationDispatcher dispatcher = new SimpleResourceNotificationDispatcher();
 
     private final JdbcTemplate template;
     private final FileSystemResourceStoreCache cache;
@@ -74,11 +78,67 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         this.queryMapper = new PgconfigResourceRowMapper(this);
     }
 
+    public void setResourceNotificationDispatcher(@NonNull ResourceNotificationDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
     @Lazy
     @Autowired
     void setTransactionalReference(@NonNull PgconfigResourceStore transactionalReference) {
         this.transactionalReference = transactionalReference;
         this.queryMapper.setStore(transactionalReference);
+    }
+
+    @Override
+    @EventListener(ResourceStoreEvent.class)
+    public void onRemoteResourceEvent(ResourceStoreEvent event) {
+        if (event.isLocal()) {
+            return;
+        }
+        switch (event.getEventKind()) {
+            case ENTRY_CREATE:
+            case ENTRY_MODIFY:
+                log.info("updating resource cache for remote event {}", event.toShortString());
+                dump(event);
+                break;
+            case ENTRY_DELETE:
+                log.info("deleting resource cache for remote event {}", event.toShortString());
+                cache.deleteQuietly(event.getPath());
+                break;
+            default:
+                throw new IllegalArgumentException("Unexpected value: " + event.getEventKind());
+        }
+    }
+
+    private void dump(ResourceStoreEvent event) {
+        String path = event.getPath();
+        // imagemosaic adds stuff the the data/ directory bypassing the Resource API
+        if ("data".equals(path) || path.startsWith("data/")) {
+            path = "data";
+        }
+        if (get(path) instanceof PgconfigResource pgresource && pgresource.exists()) {
+            final String sql =
+                    """
+                    SELECT id, parentid, "type", path, mtime, content FROM resourcestore
+                    WHERE path = ? OR path LIKE ?
+                    """;
+            final String likeQuery = path + "/%";
+
+            PgconfigResourceRowMapper mapperWithContent = PgconfigResourceRowMapper.withContent(transactionalReference);
+
+            try (Stream<PgconfigResource> s = template.queryForStream(sql, mapperWithContent, path, likeQuery)) {
+                Iterator<PgconfigResource> iterator = s.iterator();
+                while (iterator.hasNext()) {
+                    PgconfigResource resource = iterator.next();
+                    if (resource.isDirectory()) {
+                        cache.ensureDirectory(resource);
+                    } else if (resource.content != null) {
+                        InputStream in = new ByteArrayInputStream(resource.content);
+                        cache.dump(resource, in);
+                    }
+                }
+            }
+        }
     }
 
     /*
@@ -167,7 +227,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
     }
 
     public static Predicate<String> defaultIgnoredDirs() {
-        return PgconfigResourceStoreImpl.simplePathMatcher("temp", "tmp", "legendsamples", "logs", "data");
+        return PgconfigResourceStoreImpl.simplePathMatcher("temp", "tmp", "legendsamples", "logs");
     }
 
     public static Predicate<String> simplePathMatcher(String... paths) {
@@ -549,7 +609,6 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
      */
     @Override
     public boolean delete(PgconfigResource resource) {
-
         List<ResourceNotification.Event> events = createEvents(resource, ENTRY_DELETE);
         final boolean deleted = deleteQuietly(resource);
         if (deleted) {
@@ -566,6 +625,7 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
         final String sql = "DELETE FROM resourcestore WHERE id = ?";
         final int deleteCount = template.update(sql, resource.getId());
         final boolean deleted = deleteCount > 0;
+        cache.deleteQuietly(resource);
         return deleted;
     }
 
@@ -650,11 +710,17 @@ public class PgconfigResourceStoreImpl implements PgconfigResourceStore {
     private void publish(
             PgconfigResource resource, ResourceNotification.Kind kind, List<ResourceNotification.Event> events) {
         if (!events.isEmpty()) {
-            String path = resource.path();
-            long timestamp = System.currentTimeMillis();
-            ResourceNotification notification = new ResourceNotification(path, kind, timestamp, events);
-            System.err.println(notification);
+            ResourceNotification notification = notification(resource, kind, events);
+            log.warn("sending resource notification {}", notification);
             dispatcher.changed(notification);
         }
+    }
+
+    ResourceNotification notification(
+            Resource resource, ResourceNotification.Kind kind, List<ResourceNotification.Event> events) {
+        String path = resource.path();
+        long timestamp = System.currentTimeMillis();
+        ResourceNotification notification = new ResourceNotification(path, kind, timestamp, events);
+        return notification;
     }
 }

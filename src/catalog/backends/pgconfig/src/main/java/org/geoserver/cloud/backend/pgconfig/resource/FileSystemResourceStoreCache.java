@@ -5,6 +5,8 @@
 
 package org.geoserver.cloud.backend.pgconfig.resource;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import java.io.File;
@@ -20,12 +22,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.geoserver.platform.resource.FilePaths;
 import org.geoserver.platform.resource.FileSystemResourceStore;
 import org.geoserver.platform.resource.Resource;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.util.FileSystemUtils;
 
-@Slf4j
+@Slf4j(topic = "org.geoserver.cloud.backend.pgconfig.resource")
 public class FileSystemResourceStoreCache implements DisposableBean {
 
     private final Path base;
@@ -34,11 +37,11 @@ public class FileSystemResourceStoreCache implements DisposableBean {
 
     private FileSystemResourceStoreCache(@NonNull Path cacheDirectory, boolean disposable) {
         this.disposable = disposable;
-        Preconditions.checkArgument(
+        checkArgument(
                 Files.isDirectory(cacheDirectory),
                 "Cache directory is not a directory: %s",
                 cacheDirectory.toAbsolutePath());
-        Preconditions.checkArgument(
+        checkArgument(
                 Files.isWritable(cacheDirectory),
                 "Cache directory is not writable: %s",
                 cacheDirectory.toAbsolutePath());
@@ -118,7 +121,7 @@ public class FileSystemResourceStoreCache implements DisposableBean {
     }
 
     @SneakyThrows
-    private Path dump(PgconfigResource resource) {
+    public Path dump(PgconfigResource resource) {
         try (InputStream in = resource.in()) {
             return dump(resource, in);
         }
@@ -144,8 +147,39 @@ public class FileSystemResourceStoreCache implements DisposableBean {
                 .forEach(this::dump);
     }
 
+    public void deleteQuietly(PgconfigResource resource) {
+        Path path = toPath(resource);
+        deleteQuietly(path);
+    }
+
+    public void deleteQuietly(String resourcePath) {
+        Path path = toPath(resourcePath);
+        deleteQuietly(path);
+    }
+
+    void deleteQuietly(Path path) {
+        try {
+            if (Files.isRegularFile(path)) {
+                Files.delete(path);
+            } else if (Files.isDirectory(path)) {
+                // org.geoserver.util.IOUtils.delete(File directory) does not delete subdirectories
+                FileSystemUtils.deleteRecursively(path);
+            }
+        } catch (IOException e) {
+            log.warn("Error deleting cached resource {}", path, e);
+        }
+    }
+
     private Path toPath(PgconfigResource resource) {
-        return base.resolve(resource.path());
+        String relativePath = resource.path();
+        return toPath(relativePath);
+    }
+
+    private Path toPath(@NonNull String relativePath) {
+        if (FilePaths.isAbsolute(relativePath)) {
+            throw new IllegalArgumentException("Absolute paths are prohibited as resource paths: " + relativePath);
+        }
+        return base.resolve(relativePath);
     }
 
     @SneakyThrows

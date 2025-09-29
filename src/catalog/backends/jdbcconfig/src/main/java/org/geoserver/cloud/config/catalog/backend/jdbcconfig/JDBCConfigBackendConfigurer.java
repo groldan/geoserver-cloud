@@ -109,7 +109,7 @@ import org.springframework.util.StringUtils;
  * }</pre>
  */
 @Configuration(proxyBeanMethods = true)
-@EnableTransactionManagement
+@EnableTransactionManagement(proxyTargetClass = true)
 @EnableConfigurationProperties(JdbcConfigConfigurationProperties.class)
 @Slf4j(topic = "org.geoserver.cloud.config.jdbcconfig")
 public class JDBCConfigBackendConfigurer extends GeoServerBackendConfigurer {

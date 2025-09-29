@@ -22,7 +22,7 @@ import org.geoserver.platform.resource.ResourceListener;
  * @since 1.4
  */
 @EqualsAndHashCode(exclude = {"store", "lastChecked"})
-class PgconfigResource implements Resource {
+public class PgconfigResource implements Resource {
 
     /**
      * Database record identifier
@@ -48,6 +48,8 @@ class PgconfigResource implements Resource {
     private PgconfigResourceStore store;
 
     Instant lastChecked;
+
+    byte[] content;
 
     PgconfigResource(
             @NonNull PgconfigResourceStore store,

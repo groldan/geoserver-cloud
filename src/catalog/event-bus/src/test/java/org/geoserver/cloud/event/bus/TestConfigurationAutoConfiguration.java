@@ -68,9 +68,11 @@ public class TestConfigurationAutoConfiguration implements InitializingBean, App
     }
 
     @Bean(name = {"catalog", "rawCatalog"})
-    Catalog catalog() {
+    Catalog catalog(GeoServerResourceLoader resourceLoader) {
         final boolean isolated = false;
-        return new CatalogPlugin(isolated);
+        CatalogPlugin catalog = new CatalogPlugin(isolated);
+        catalog.setResourceLoader(resourceLoader);
+        return catalog;
     }
 
     @Bean

@@ -7,9 +7,11 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Optional;
+import org.geoserver.cloud.event.resource.ResourceStoreEvent;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.ResourceListener;
 import org.geoserver.platform.resource.ResourceStore;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,10 @@ public interface PgconfigResourceStore extends ResourceStore {
     @Override
     @Transactional(transactionManager = "pgconfigTransactionManager", propagation = REQUIRED)
     boolean move(String path, String target);
+
+    @EventListener(ResourceStoreEvent.class)
+    @Transactional(transactionManager = "pgconfigTransactionManager", propagation = REQUIRED)
+    void onRemoteResourceEvent(ResourceStoreEvent event);
 
     /**
      * Creates the resource if it doesn't exist, updates it if it does

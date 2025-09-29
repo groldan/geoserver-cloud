@@ -10,6 +10,7 @@ import static org.geoserver.platform.resource.Resource.Type.RESOURCE;
 import static org.geoserver.platform.resource.Resource.Type.UNDEFINED;
 import static org.geoserver.platform.resource.ResourceMatchers.directory;
 import static org.geoserver.platform.resource.ResourceMatchers.undefined;
+import static org.geoserver.platform.resource.SimpleResourceNotificationDispatcher.createEvents;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -24,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
+import org.geoserver.cloud.event.resource.ResourceStoreEvent;
 import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
@@ -78,7 +82,8 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
-    private PgconfigResourceStore store;
+    private PgconfigResourceStoreImpl store;
+    private FileSystemResourceStoreCache cache;
     private File cacheDirectory;
 
     @DataPoints
@@ -115,7 +120,7 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
         JdbcTemplate template = container.getTemplate();
         PgconfigLockProvider lockProvider = new PgconfigLockProvider(pgconfigLockRegistry());
         cacheDirectory = tmpDir.newFolder();
-        FileSystemResourceStoreCache cache = FileSystemResourceStoreCache.ofProvidedDirectory(cacheDirectory.toPath());
+        cache = FileSystemResourceStoreCache.ofProvidedDirectory(cacheDirectory.toPath());
         Predicate<String> defaultIgnoredResources = PgconfigResourceStoreImpl.defaultIgnoredResources();
         store = new PgconfigResourceStoreImpl(cache, template, lockProvider, defaultIgnoredResources);
         setupTestData(template);
@@ -573,7 +578,7 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
     }
 
     @Test
-    public void testEvents() throws IOException {
+    public void testResourceNotificationEvents() throws IOException {
         List<ResourceNotification> captured = new ArrayList<>();
         ResourceListener capturingListener = captured::add;
         store.addListener("", capturingListener);
@@ -593,8 +598,6 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
         Resource file = subdir.get("file");
         file.file();
         file.setContents("modified".getBytes(StandardCharsets.UTF_8));
-
-        captured.forEach(System.out::println);
 
         assertEquals(5, captured.size());
         assertEvents(captured.get(0), "", Kind.ENTRY_MODIFY, created("dir"));
@@ -620,5 +623,133 @@ public class PgconfigResourceStoreImplTest extends ResourceTheoryTest {
 
     private ResourceNotification.Event modified(String path) {
         return new ResourceNotification.Event(path, Kind.ENTRY_MODIFY);
+    }
+
+    @Test
+    public void testCacheSynchronizationOnLocalResourceOperations() throws IOException {
+        Resource dir = store.get("dir");
+        dir.dir();
+        Resource subdir = dir.get("subdir");
+        subdir.dir();
+
+        Resource fileResource = store.get("dir/subdir/testFile");
+        fileResource.setContents("test".getBytes(StandardCharsets.UTF_8));
+
+        Resource modifiedFileResource = subdir.get("modifiedFile");
+        modifiedFileResource.setContents("initial".getBytes(StandardCharsets.UTF_8));
+        modifiedFileResource.setContents("modified".getBytes(StandardCharsets.UTF_8));
+
+        Path cacheRoot = cacheDirectory.toPath();
+        Path cachedDir = cacheRoot.resolve("dir");
+        Path cachedSubdir = cachedDir.resolve("subdir");
+        assertTrue(Files.isDirectory(cachedDir));
+        assertTrue(Files.isDirectory(cachedSubdir));
+
+        Path cachedTestFile = cachedSubdir.resolve(fileResource.name());
+        Path cachedModifiedFile = cachedSubdir.resolve(modifiedFileResource.name());
+
+        assertContensts(cachedTestFile, "test");
+        assertContensts(cachedModifiedFile, "modified");
+
+        assertTrue(modifiedFileResource.delete());
+        assertFalse(cachedModifiedFile + " was not deleted", Files.exists(cachedModifiedFile));
+
+        assertTrue(dir.delete());
+        assertFalse(cachedTestFile + " was not deleted", Files.exists(cachedTestFile));
+        assertFalse(cachedSubdir + " was not deleted", Files.exists(cachedSubdir));
+        assertFalse(cachedDir + " was not deleted", Files.exists(cachedDir));
+    }
+
+    @Test
+    public void testCacheSynchronizationOnRemoteResourceEvents() throws IOException {
+        Resource dir = store.get("dir");
+        Resource subdir = dir.get("subdir");
+        Resource fileResource = store.get("dir/subdir/testFile");
+        fileResource.setContents("test".getBytes(StandardCharsets.UTF_8));
+
+        Resource modifiedFileResource = subdir.get("modifiedFile");
+        modifiedFileResource.setContents("initial".getBytes(StandardCharsets.UTF_8));
+        modifiedFileResource.setContents("modified".getBytes(StandardCharsets.UTF_8));
+
+        Path cacheRoot = cacheDirectory.toPath();
+        Path cachedDir = cacheRoot.resolve("dir");
+        Path cachedSubdir = cachedDir.resolve("subdir");
+        Path cachedTestFile = cachedSubdir.resolve(fileResource.name());
+        Path cachedModifiedFile = cachedSubdir.resolve(modifiedFileResource.name());
+
+        // simulate remote events
+        ResourceStoreEvent event = created(dir);
+        event.setRemote(false);
+        cache.deleteQuietly(cachedDir);
+        assertFalse(Files.exists(cachedDir));
+        store.onRemoteResourceEvent(event);
+        assertFalse("should ignore local events", Files.exists(cachedDir));
+
+        event = created(dir);
+        store.onRemoteResourceEvent(event);
+        assertContensts(cachedTestFile, "test");
+        assertContensts(cachedModifiedFile, "modified");
+
+        event = modified(subdir);
+        cache.deleteQuietly(cachedDir);
+        store.onRemoteResourceEvent(event);
+        assertContensts(cachedTestFile, "test");
+        assertContensts(cachedModifiedFile, "modified");
+
+        event = modified(fileResource);
+        cache.deleteQuietly(cachedDir);
+        store.onRemoteResourceEvent(event);
+        assertContensts(cachedTestFile, "test");
+        assertFalse(Files.exists(cachedModifiedFile));
+
+        event = created(fileResource);
+        store.onRemoteResourceEvent(event);
+        assertContensts(cachedTestFile, "test");
+        assertFalse(Files.exists(cachedModifiedFile));
+
+        event = modified(modifiedFileResource);
+        store.onRemoteResourceEvent(event);
+        assertContensts(cachedTestFile, "test");
+        assertContensts(cachedModifiedFile, "modified");
+
+        event = deleted(fileResource);
+        assertTrue(Files.exists(cachedTestFile));
+        store.onRemoteResourceEvent(event);
+        assertFalse(Files.exists(cachedTestFile));
+        assertContensts(cachedModifiedFile, "modified");
+
+        event = deleted(dir);
+        assertTrue(Files.exists(cachedDir));
+        assertTrue(Files.exists(cachedSubdir));
+        assertTrue(Files.exists(cachedModifiedFile));
+        store.onRemoteResourceEvent(event);
+        assertFalse(Files.exists(cachedModifiedFile));
+        assertFalse(Files.exists(cachedSubdir));
+        assertFalse(Files.exists(cachedDir));
+    }
+
+    private ResourceStoreEvent created(Resource resource) {
+        return remoteEvent(resource, Kind.ENTRY_CREATE);
+    }
+
+    private ResourceStoreEvent modified(Resource resource) {
+        return remoteEvent(resource, Kind.ENTRY_MODIFY);
+    }
+
+    private ResourceStoreEvent deleted(Resource resource) {
+        return remoteEvent(resource, Kind.ENTRY_DELETE);
+    }
+
+    private ResourceStoreEvent remoteEvent(Resource resource, Kind kind) {
+        ResourceNotification notification = store.notification(resource, kind, createEvents(resource, kind));
+        ResourceStoreEvent event = ResourceStoreEvent.of(notification);
+        event.setRemote(true);
+        return event;
+    }
+
+    private void assertContensts(Path file, String contents) throws IOException {
+        assertTrue(file + " does not exist", Files.isRegularFile(file));
+        byte[] allBytes = Files.readAllBytes(file);
+        assertEquals(contents, new String(allBytes, StandardCharsets.UTF_8));
     }
 }

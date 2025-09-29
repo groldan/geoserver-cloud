@@ -21,7 +21,7 @@ import org.springframework.integration.support.locks.LockRegistry;
  *
  * @since 1.4
  */
-@Slf4j
+@Slf4j(topic = "org.geoserver.cloud.backend.pgconfig.resource")
 public class PgconfigLockProvider implements LockProvider {
 
     private LockRegistry registry;

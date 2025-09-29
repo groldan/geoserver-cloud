@@ -18,6 +18,7 @@ import org.geoserver.cloud.backend.pgconfig.resource.PgconfigLockProvider;
 import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.PgconfigGeoServerLoader;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.PgconfigGeoServerResourceLoader;
+import org.geoserver.cloud.event.resource.ApplicationEventResourceNotificationDispatcher;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,12 +65,18 @@ class PgconfigBackendAutoConfigurationTest {
                     .hasSingleBean(PgconfigGeoServerLoader.class)
                     .hasSingleBean(PgconfigConfigRepository.class)
                     .hasSingleBean(PgconfigGeoServerFacade.class)
+                    .hasSingleBean(ApplicationEventResourceNotificationDispatcher.class)
                     .hasBean("resourceStoreImpl")
                     .hasSingleBean(PgconfigGeoServerResourceLoader.class)
                     .hasSingleBean(PgconfigLockProvider.class);
 
             ExtendedCatalogFacade catalogFacade = context.getBean("catalogFacade", ExtendedCatalogFacade.class);
             assertThat(catalogFacade).isInstanceOf(PgconfigCatalogFacade.class);
+
+            ApplicationEventResourceNotificationDispatcher dispatcher =
+                    context.getBean(ApplicationEventResourceNotificationDispatcher.class);
+            Object resourceStore = context.getBean("resourceStoreImpl");
+            assertThat(resourceStore).hasFieldOrPropertyWithValue("resourceNotificationDispatcher", dispatcher);
         });
     }
 }

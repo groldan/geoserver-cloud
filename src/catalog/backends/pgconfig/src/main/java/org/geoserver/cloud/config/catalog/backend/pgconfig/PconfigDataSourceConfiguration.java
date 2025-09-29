@@ -15,14 +15,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.StringUtils;
 
 /**
  * @since 1.4
  */
 @Configuration(proxyBeanMethods = true)
-@EnableTransactionManagement
 @EnableConfigurationProperties(PgconfigBackendProperties.class)
 @Slf4j
 public class PconfigDataSourceConfiguration {
