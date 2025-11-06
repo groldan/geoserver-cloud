@@ -195,7 +195,7 @@ public class EventualConsistencyEnforcer implements GeoServerLifecycleHandler {
      * @return {@code true} if there are no pending operations, {@code false} if operations are
      *     still waiting for dependencies
      */
-    boolean isConverged() {
+    public boolean isConverged() {
         lock.lock();
         try {
             return pendingOperations.isEmpty();
