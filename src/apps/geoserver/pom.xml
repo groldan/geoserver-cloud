@@ -34,7 +34,8 @@
   <dependencies>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
-      <artifactId>gs-cloud-spring-factory</artifactId>
+      <artifactId>spring-boot-simplejndi</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <!-- Base Spring Boot integration -->
     <dependency>
