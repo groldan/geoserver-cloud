@@ -8,13 +8,13 @@
     <version>${revision}</version>
   </parent>
   <groupId>org.geoserver.cloud.build</groupId>
-  <artifactId>gs-cloud-build</artifactId>
+  <artifactId>gs-cloud-build-tools</artifactId>
   <packaging>pom</packaging>
-  <name>GeoServer Cloud Build</name>
+  <name>GeoServer Cloud :: Build Tools</name>
   <description>Build tools and compile-time processors for GeoServer Cloud</description>
 
   <modules>
-    <module>build-config</module>
+    <module>build-resources</module>
     <module>spring-config-transpiler</module>
   </modules>
 

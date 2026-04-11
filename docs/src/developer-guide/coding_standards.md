@@ -4,11 +4,11 @@ GeoServer Cloud follows a set of coding standards to ensure code consistency and
 
 ## Introduction
 
-Code style consistency is enforced using automated tools during the build process. The project uses a build-tools module approach, similar to other major Java projects like Apache Commons, Spring Framework, and Hibernate, to centralize style configuration.
+Code style consistency is enforced using automated tools during the build process. The project uses a build-resources module approach, similar to other major Java projects like Apache Commons, Spring Framework, and Hibernate, to centralize style configuration.
 
 ## Checkstyle Configuration
 
-Checkstyle is used to enforce consistent code style and formatting standards. The configuration is located in the `src/build-tools` module.
+Checkstyle is used to enforce consistent code style and formatting standards. The configuration is located in the `src/build-tools/build-resources` module.
 
 ### Key Style Rules
 
@@ -27,8 +27,8 @@ Checkstyle is used to enforce consistent code style and formatting standards. Th
 
 The Checkstyle configuration is stored in the following files:
 
-- `src/build-tools/src/main/resources/checkstyle/checkstyle.xml`: Main configuration
-- `src/build-tools/src/main/resources/checkstyle/suppressions.xml`: Rules for suppressing certain checks
+- `src/build-tools/build-resources/src/main/resources/checkstyle/checkstyle.xml`: Main configuration
+- `src/build-tools/build-resources/src/main/resources/checkstyle/suppressions.xml`: Rules for suppressing certain checks
 
 ## Code Formatting
 

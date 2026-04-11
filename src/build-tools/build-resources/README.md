@@ -1,10 +1,10 @@
-# GeoServer Cloud Build Tools
+# GeoServer Cloud Build Resources
 
 This module contains centralized build configurations for the GeoServer Cloud project.
 
 ## Checkstyle
 
-The build-tools module contains Checkstyle configuration that enforces consistent code style across the project. This approach follows the pattern used by many major Java projects including Apache Commons, Spring Framework, and Hibernate.
+The build-resourcss module contains Checkstyle configuration that enforces consistent code style across the project. This approach follows the pattern used by many major Java projects including Apache Commons, Spring Framework, and Hibernate.
 
 ### Key Features
 
@@ -20,7 +20,7 @@ The build-tools module contains Checkstyle configuration that enforces consisten
 
 ## Usage
 
-The build-tools module is referenced by the Maven Checkstyle plugin in the parent POM. The validation can be run with:
+The build-resourcss module is referenced by the Maven Checkstyle plugin in the parent POM. The validation can be run with:
 
 ```bash
 # Run checkstyle as part of the QA process

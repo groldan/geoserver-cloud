@@ -16,12 +16,12 @@ REPACKAGE ?= true
 clean:
 	./mvnw clean
 
-.PHONY: build-tools
-build-tools:
-	./mvnw clean install -pl src/build-tools/build-config/ -ntp
+.PHONY: build-resources
+build-resources:
+	./mvnw clean install -pl src/build-tools/build-resources/ -ntp
 
 .PHONY: lint
-lint: build-tools
+lint: build-resources
 	./mvnw validate -Dqa -fae -ntp -T1C
 
 .PHONY: lint-pom
@@ -29,7 +29,7 @@ lint-pom:
 	./mvnw validate -Dqa -fae -Dspotless.skip=true -Dcheckstyle.skip=true -ntp -T1C
 
 .PHONY: lint-java
-lint-java: build-tools
+lint-java: build-resources
 	./mvnw validate -Dqa -fae -Dsortpom.skip=true -ntp -T1C
 
 .PHONY: format
@@ -44,7 +44,7 @@ format-java:
 	./mvnw spotless:apply -ntp -T1C
 
 .PHONY: install
-install: build-tools
+install: build-resources
 	./mvnw clean install -DskipTests -ntp -U -T1C
 
 .PHONY: package

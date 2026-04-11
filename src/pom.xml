@@ -1368,7 +1368,7 @@
             <dependencies>
               <dependency>
                 <groupId>org.geoserver.cloud.build</groupId>
-                <artifactId>gs-cloud-build-tools</artifactId>
+                <artifactId>gs-cloud-build-resources</artifactId>
                 <version>${project.version}</version>
               </dependency>
               <dependency>

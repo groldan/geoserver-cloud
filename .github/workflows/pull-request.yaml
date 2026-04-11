@@ -40,7 +40,7 @@ jobs:
         cache: 'maven'
 
     - name: Validate pom formatting
-      run: make build-tools lint-pom
+      run: make build-resources lint-pom
 
     - name: Validate source code formatting
       run: make lint-java

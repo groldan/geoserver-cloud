@@ -4,7 +4,7 @@
 
   <parent>
     <groupId>org.geoserver.cloud.build</groupId>
-    <artifactId>gs-cloud-build</artifactId>
+    <artifactId>gs-cloud-build-tools</artifactId>
     <version>${revision}</version>
   </parent>
 

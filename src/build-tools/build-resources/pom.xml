@@ -4,12 +4,12 @@
 
   <parent>
     <groupId>org.geoserver.cloud.build</groupId>
-    <artifactId>gs-cloud-build</artifactId>
+    <artifactId>gs-cloud-build-tools</artifactId>
     <version>${revision}</version>
   </parent>
 
-  <artifactId>gs-cloud-build-tools</artifactId>
-  <name>GeoServer Cloud Build Tools</name>
+  <artifactId>gs-cloud-build-resources</artifactId>
+  <name>GeoServer Cloud Build Resources</name>
   <description>Centralized build configurations for GeoServer Cloud</description>
 
   <properties>
