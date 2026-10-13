@@ -5,10 +5,27 @@ all: deps install test build-image ## Full build: GeoServer dependencies, artifa
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "; printf "Targets:\n"} /^[a-zA-Z0-9_-]+:.*## / {printf "  \033[36m%-32s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-TAG?=$(shell ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+# VERSION is the release version, e.g. 3.1.0-M1. It becomes the Maven revision
+# and the image tag; pom.xml keeps its snapshot. The workflow sets it for
+# every build: the tag name for a release, the pom version for a snapshot.
+# Empty locally for a snapshot build, where TAG comes from the pom.
+VERSION ?=
+ifneq ($(VERSION),)
+# override: make ignores a plain += when MVN_FLAGS comes from the command line.
+override MVN_FLAGS += -Drevision=$(VERSION)
+# override: an exported TAG must not tag the images differently from the jars.
+override TAG = $(VERSION)
+else
+TAG ?= $(shell ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+endif
+MVNW = ./mvnw $(MVN_FLAGS)
+
+# Optional. Empty: the release check finds the geoserver/geoserver-cloud remote
+# by URL. A name given here must point at that repository.
+GIT_REMOTE ?=
 
 .PHONY: show-version
-show-version: ## Print the project version
+show-version: ## Print the project version, or VERSION when set
 	@echo $(TAG)
 
 COSIGN_PASSWORD := $(COSIGN_PASSWORD)
@@ -18,15 +35,20 @@ REPACKAGE ?= true
 
 .PHONY: clean
 clean: ## Remove build output (mvnw clean)
-	./mvnw clean
+	$(MVNW) clean
 
 # Build the customized GeoServer from the geoserver_submodule/geoserver
 # submodule and install its artifacts into the local Maven repository.
 # `make deps` builds the submodule as checked out, `make deps-sync` moves it to
 # the head of the GeoServer branch this branch tracks.
+# The deps-* targets call ./mvnw directly because the fork does not use the
+# revision property passed by MVNW.
 GEOSERVER_SUBMODULE = geoserver_submodule/geoserver
 GEOSERVER_SUBMODULE_BRANCH = $(shell git config -f .gitmodules submodule.geoserver.branch)
-GEOSERVER_BUILD_FLAGS = --batch-mode -DskipTests -ntp -fae -Dsort.skip=true -Dspotless.apply.skip=true -T1C
+# JGit for the git-commit-id plugin. Native mode runs git in the parent of the git
+# directory, inside .git/modules for a submodule, and fails there. The gitNative
+# profile recommended by the GeoServer pom turns native mode on.
+GEOSERVER_BUILD_FLAGS = --batch-mode -DskipTests -ntp -fae -Dsort.skip=true -Dspotless.apply.skip=true -T1C -Dgit.commit.useNative=false
 GEOSERVER_COMMUNITY_PROFILES = pending,cog,acl,flatgeobuf,geoparquet,graticule,gwc-azure-blob,gwc-gcs-blob,pmtiles-store,oseo,features-templating
 
 .PHONY: deps
@@ -59,42 +81,42 @@ deps-community:
 
 .PHONY: build-tools
 build-tools:
-	./mvnw clean install -pl src/build-tools/build-config/ -ntp
+	$(MVNW) clean install -pl src/build-tools/build-config/ -ntp
 
 .PHONY: lint
 lint: build-tools ## Run static analysis (checkstyle, spotless, sortpom)
-	./mvnw validate -Dqa -fae -ntp -T1C
+	$(MVNW) validate -Dqa -fae -ntp -T1C
 
 .PHONY: lint-pom
 lint-pom:
-	./mvnw validate -Dqa -fae -Dspotless.skip=true -Dcheckstyle.skip=true -ntp -T1C
+	$(MVNW) validate -Dqa -fae -Dspotless.skip=true -Dcheckstyle.skip=true -ntp -T1C
 
 .PHONY: lint-java
 lint-java: build-tools
-	./mvnw validate -Dqa -fae -Dsortpom.skip=true -ntp -T1C
+	$(MVNW) validate -Dqa -fae -Dsortpom.skip=true -ntp -T1C
 
 .PHONY: format
 format: format-pom format-java ## Apply Java and POM formatting
 
 .PHONY: format-pom
 format-pom:
-	./mvnw sortpom:sort -ntp -T1C
+	$(MVNW) sortpom:sort -ntp -T1C
 
 .PHONY: format-java
 format-java:
-	./mvnw spotless:apply -ntp -T1C
+	$(MVNW) spotless:apply -ntp -T1C
 
 .PHONY: install
 install: build-tools ## Compile and install all modules, skipping tests
-	./mvnw clean install -DskipTests -ntp -U -T1C
+	$(MVNW) clean install -DskipTests -ntp -U -T1C
 
 .PHONY: package
 package: ## Package all modules, skipping tests
-	./mvnw clean package -Dfmt.skip -DskipTests -ntp -U -T1C
+	$(MVNW) clean package -Dfmt.skip -DskipTests -ntp -U -T1C
 
 .PHONY: test
 test: ## Run unit and integration tests
-	./mvnw verify -Dfmt.skip -ntp -T1C
+	$(MVNW) verify -Dfmt.skip -ntp -T1C
 
 .PHONY: build-image
 build-image: build-base-images build-image-infrastructure build-image-geoserver ## Build the Docker images for this platform
@@ -120,7 +142,7 @@ build-image-geoserver: package-geoserver-images
 .PHONY: package-base-images
 package-base-images:
 ifeq ($(REPACKAGE), true)
-	./mvnw clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/base-images/jre,src/apps/base-images/spring-boot,src/apps/base-images/geoserver
+	$(MVNW) clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/base-images/jre,src/apps/base-images/spring-boot,src/apps/base-images/geoserver
 else
 	@echo "Not re-packaging base images, assuming the target/*-bin.jar files exist"
 endif
@@ -128,7 +150,7 @@ endif
 .PHONY: package-infrastructure-images
 package-infrastructure-images:
 ifeq ($(REPACKAGE), true)
-	./mvnw clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/infrastructure/config,src/apps/infrastructure/gateway-webmvc
+	$(MVNW) clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/infrastructure/config,src/apps/infrastructure/gateway-webmvc
 else
 	@echo "Not re-packaging infra images, assuming the target/*-bin.jar files exist"
 endif
@@ -136,15 +158,61 @@ endif
 .PHONY: package-geoserver-images
 package-geoserver-images:
 ifeq ($(REPACKAGE), true)
-	./mvnw clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/geoserver/gwc,src/apps/geoserver/restconfig,src/apps/geoserver/wcs,src/apps/geoserver/webui,src/apps/geoserver/wfs,src/apps/geoserver/wms,src/apps/geoserver/wcs,src/apps/geoserver/wps
+	$(MVNW) clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/geoserver/gwc,src/apps/geoserver/restconfig,src/apps/geoserver/wcs,src/apps/geoserver/webui,src/apps/geoserver/wfs,src/apps/geoserver/wms,src/apps/geoserver/wcs,src/apps/geoserver/wps
 else
 	@echo "Not re-packaging geoserver images, assuming the target/*-bin.jar files exist"
 endif
 
+# One service: APP=wms, wfs, wcs, wps, gwc, restconfig or webui, the folders
+# under src/apps/geoserver.
+.PHONY: package-geoserver-app
+package-geoserver-app: ## Package one GeoServer service, APP=<service>
+	@test -n "$(APP)" || { echo "APP is required, e.g. make package-geoserver-app APP=wms"; exit 2; }
+	$(MVNW) clean package -Dfmt.skip -DskipTests -T1C -ntp -am -pl src/apps/geoserver/$(APP)
+
+# The version is shell input, not recipe text: shell syntax in it must reach
+# the script unchanged. Make exports command-line and environment variables.
+.PHONY: release-check
+release-check: ## Check that HEAD can be released as VERSION
+	@test -n "$$VERSION" || { echo "VERSION is required, e.g. make release-check VERSION=3.1.0"; exit 2; }
+	GIT_REMOTE="$$GIT_REMOTE" ci/release-check.sh "$$VERSION"
+
+# Release build dry run on this machine: nothing is pushed or tagged. No tests:
+# the pin pull request ran them. Sub-makes, because the image targets pass
+# command line goals to docker compose as service names.
+.PHONY: release-dry-run
+release-dry-run: release-check ## Build the release images for VERSION locally; pushes nothing
+	$(MAKE) deps
+	$(MAKE) build-image
+	@echo "Dry run of release $(VERSION) done: images tagged $(TAG) built, nothing pushed"
+
+# The geoserver/geoserver-cloud remote, found by URL; GIT_REMOTE overrides it.
+# Recursive: the script runs only when a recipe uses the variable.
+RELEASE_REMOTE = $(shell GIT_REMOTE=$(GIT_REMOTE) ci/release-check.sh --remote)
+
+# Put a signed tag on HEAD and push it. The push starts the release workflow.
+# DRY_RUN=true: dry-run push, local tag removed again. Other values are refused,
+# DRY_RUN=1 would push for real.
+# The refusal is a recipe line: an exported DRY_RUN must not stop other targets.
+# A failed real push keeps the tag: retry with git push <remote> <version>.
+.PHONY: release-tag
+release-tag: release-check ## Put a signed tag VERSION on HEAD and push it; DRY_RUN=true pushes nothing
+ifneq ($(DRY_RUN),)
+ifneq ($(DRY_RUN),true)
+	$(error DRY_RUN must be true or unset, got '$(DRY_RUN)')
+endif
+endif
+	git tag -s $(VERSION) -m "GeoServer Cloud $(VERSION)"
+ifeq ($(DRY_RUN),true)
+	git push --dry-run $(RELEASE_REMOTE) $(VERSION) || { git tag -d $(VERSION); exit 1; }
+	git tag -d $(VERSION)
+else
+	git push $(RELEASE_REMOTE) $(VERSION)
+endif
+
 .PHONY: pull-images
 pull-images: ## Pull the published images for the current version
-	TAG=$$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout) \
-	docker compose \
+	TAG=$(TAG) docker compose \
      -f docker-build/geoserver.yml \
      -f docker-build/infrastructure.yml \
      pull --quiet
@@ -152,7 +220,7 @@ pull-images: ## Pull the published images for the current version
 .PHONY: sign-image
 sign-image: ## Sign the release images with cosign
 	@bash -c '\
-	TAG=$$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout); \
+	TAG=$(TAG); \
 	images=$$(TAG=$$TAG docker compose -f docker-build/geoserver.yml -f docker-build/infrastructure.yml config --images); \
 	for image in $$images; do \
 	  echo "Signing $$image"; \
@@ -168,7 +236,7 @@ sign-image: ## Sign the release images with cosign
 .PHONY: verify-image
 verify-image: ## Verify the release image signatures with cosign
 	@bash -c '\
-	TAG=$$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout); \
+	TAG=$(TAG); \
 	images=$$(TAG=$$TAG docker compose -f docker-build/geoserver.yml -f docker-build/infrastructure.yml config --images); \
 	for image in $$images; do \
 	  echo "Verifying $$image"; \
